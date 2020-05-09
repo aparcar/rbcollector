@@ -1,0 +1,27 @@
+log: DEBUG
+url: https://rebuild.aparcar.org
+gitlab_token: "foobar"
+
+origins:
+  openwrt:
+    description: Upstream OpenWrt images and packages
+    alias: OpenWrt
+    uri: https://downloads.cdn.openwrt.org
+    website: https://openwrt.org
+    sources_method: openwrt
+    interval: 720 # 12 hours
+    suites:
+      - SNAPSHOT
+    targets:
+      - x86/64
+      - ath79/generic
+
+rebuilders:
+  aparcar-openwrt-gitlab:
+    maintainer: Paul Spooren
+    contact: mail@aparcar.org
+    uri: https://gitlab.com#aparcar/rebuild
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: gitlab
+    artifact_storage: True

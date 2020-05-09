@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block content %}
+<p style="clear:both;">
+
+    <table>
+        <tr>
+            <th>
+                name
+            </th>
+            <th>
+                version
+            </th>
+            <th>
+                cpe
+            </th>
+            <th>
+                rebuilds
+            </th>
+        </tr>
+        {% for name, rebuilders in results | groupby("name") %} {% set meta = rebuilders | first %}
+        <tr>
+            <td>
+                {{ name}}
+            </td>
+            <td>
+                {{ meta.tested_version }}
+            </td>
+            <td>
+                {{ meta.cpe }}
+            </td>
+            <td>
+                {% for rebuilder in rebuilders %}
+                <a href="" title="{{ rebuilder.rebuilder}}">
+                    <img src="/static/{{ rebuilder.status }}.png" alt="{{ rebuilder.status }} icon">
+                </a>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

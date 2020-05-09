@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% block content %}
+<p style="clear:both;">
+    <h2>
+        <a href="/{{ suite.origin.name }}">{{ suite.origin.name }}</a> / {{ suite.name }} components
+    </h2>
+    <table>
+        <tr>
+            <th>
+                name
+            </th>
+        </tr>
+        {% for component in suite.components %}
+        <tr>
+            <td>
+                <a href="{{ component.name }}/index.html">
+                    {{ component.name }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

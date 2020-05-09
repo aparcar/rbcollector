@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block content %} {% set meta = sources | first %}
+<p style="clear:both;">
+    <h2><a href="/{{ meta.component.suite.origin.name }}">{{ meta.component.suite.origin.name }}</a> /
+        <a href="/{{ meta.component.suite.origin.name }}/{{ meta.component.suite.name }}">{{ meta.component.suite.name }}</a> /
+        <a href="/{{ meta.component.suite.origin.name }}/{{ meta.component.suite.name }}/{{ meta.component.name }}">{{ meta.component.name }}</a> / {{ meta.target }} sources
+    </h2>
+    <table>
+        <tr>
+            <th>
+                name
+            </th>
+            <th>
+                version
+            </th>
+            <th>
+                cpe
+            </th>
+            <th>
+                rebuilds
+            </th>
+        </tr>
+        {% for source in sources %}
+        <tr>
+            <td>
+                {{ source.name }}
+            </td>
+            <td>
+                {{ source.version }}
+            </td>
+            <td>
+                {{ source.cpe}}
+            </td>
+            <td>
+                {% for result in source.results %}
+                <a href="{{ result.storage_uri.uri }}/output/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
+                    <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
+                </a>
+                {% else %}
+                <img src="/static/untested.png" alt="untested icon"> {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

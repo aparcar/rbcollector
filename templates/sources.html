@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block content %}
+<p style="clear:both;">
+    <h2>
+        <a href="/{{ component.suite.origin.name }}">{{ component.suite.origin.name }}</a> /
+        <a href="/{{ component.suite.origin.name }}/{{ component.suite.name }}">{{ component.suite.name }}</a> / {{ component.name }} targets
+    </h2>
+    <table>
+        <tr>
+            <th>
+                name
+            </th>
+        </tr>
+        {% for target in targets %}
+        <tr>
+            <td>
+                <a href="/{{ component.suite.origin.name }}/{{ component.suite.name }}/{{ component.name }}/{{ target.target }}/index.html">
+                    {{ target.target }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

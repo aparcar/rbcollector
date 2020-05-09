@@ -1,0 +1,6 @@
+.direnv/
+__pycache__/
+config.yml
+database.db
+public/
+rebuilder.egg-info

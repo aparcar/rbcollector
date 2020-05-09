@@ -1,0 +1,20 @@
+{% extends "base.html" %} {% block content %}
+<p style="clear:both;">
+    <h2>Origins</h2>
+    <table>
+        <tr>
+            <th>
+                name
+            </th>
+        </tr>
+        {% for origin in origins %}
+        <tr>
+            <td>
+                <a href="{{ origin.name }}/index.html">
+                    {{ origin.name }}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}
