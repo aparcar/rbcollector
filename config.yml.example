@@ -3,6 +3,17 @@ url: https://rebuild.aparcar.org
 gitlab_token: "foobar"
 
 origins:
+  archlinux:
+    description: Upstream Archlinux packages
+    alias: Archlinux
+    uri: https://www.archlinux.org/download/
+    website: https://archlinux.org
+    sources_method: archlinux
+    interval: 720 # 12 hours
+    suites:
+      - core
+      - extra
+
   openwrt:
     description: Upstream OpenWrt images and packages
     alias: OpenWrt
@@ -17,6 +28,15 @@ origins:
       - ath79/generic
 
 rebuilders:
+  rebuilderd-archlinux:
+    maintainer: unknown
+    contact: unknown
+    uri: https://reproducible.archlinux.org#archlinux
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: rebuilderd
+    artifact_storage: False
+
   aparcar-openwrt-gitlab:
     maintainer: Paul Spooren
     contact: mail@aparcar.org

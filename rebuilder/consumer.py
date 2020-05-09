@@ -10,8 +10,10 @@ import gitlab
 from jinja2 import Environment, FileSystemLoader
 from peewee import *
 
+import sources.archlinux
 import sources.openwrt
 import results.gitlab
+import results.rebuilderd
 
 from database import *
 
@@ -23,25 +25,34 @@ with open("config.yml") as config_file:
 
 init_db()
 
-for name, origin in config.get("origins", {}).items():
+for name, origin_config in config.get("origins", {}).items():
     origin_data = dict(
         name=name,
-        alias=origin["alias"],
-        description=origin["description"],
-        uri=origin["uri"],
-        website=origin["website"],
+        alias=origin_config["alias"],
+        description=origin_config["description"],
+        uri=origin_config["uri"],
+        website=origin_config["website"],
     )
     Origins.insert(origin_data).on_conflict(
         conflict_target=[Origins.name], update=origin_data
     ).execute()
+
+    origin = Origins.get(name=name)
+
 
 for name, rebuilder in config.get("rebuilders", {}).items():
     Rebuilders.insert(**rebuilder, name=name).on_conflict(
         conflict_target=[Rebuilders.name], update=rebuilder
     ).execute()
 
-results_methods = {"gitlab": results.gitlab.get_rbvfs}
-sources_methods = {"openwrt": sources.openwrt.update_sources}
+results_methods = {
+    "gitlab": results.gitlab.get_rbvfs,
+    "rebuilderd": results.rebuilderd.get_rbvfs,
+}
+sources_methods = {
+    "archlinux": sources.archlinux.update_sources,
+    "openwrt": sources.openwrt.update_sources,
+}
 
 target_map = {"x86_64": "x86/64"}
 
@@ -63,7 +74,11 @@ def insert_rbvf(rbvf: dict):
 
     for result in rbvf["results"]:
         artifacts, _ = Artifacts.get_or_create(**result.pop("artifacts"))
-        suite = Suites.get(name=result.pop("suite"), origin=origin)
+        suite = Suites.get_or_none(name=result.pop("suite"), origin=origin)
+        if not suite:
+            # print("skip unknown suite")
+            continue
+
         component = Components.get_or_none(name=result.pop("component"), suite=suite)
         if not component:
             continue
@@ -75,14 +90,14 @@ def insert_rbvf(rbvf: dict):
             name=result.pop("name"),
             version=tested_version,
             component=component,
-            target=target_map.get(target, target),
+            target=target,
         )
         if not source:
             print(f"ERROR: source unknown")
             continue
 
-        result.pop("cpe")
-        build_date = datetime.fromtimestamp(result.pop("build_date"))
+        result.pop("cpe", "")
+        build_date = datetime.fromtimestamp(result.pop("build_date", 0))
 
         Results.get_or_create(
             **result,
@@ -164,8 +179,10 @@ def render():
     origins = Origins.select()
     render_origins(origins)
     for origin in origins:
+        print(f"Rendering {origin.name}")
         render_suites(origin)
         for suite in origin.suites:
+            print(f"Rendering {origin.name}/{suite.name}")
             render_components(suite)
             for component in suite.components:
                 targets = component.sources.select(Sources.target).distinct()
@@ -176,14 +193,16 @@ def render():
                     )
 
 
-for origin in Origins.select():
-    origin_config = config["origins"][origin.name]
-    sources_methods[origin_config["sources_method"]](origin.name, origin_config)
-    origin.update(timestamp=datetime.now())
+origins = Origins.select().execute()
+
+for origin in origins:
+   origin_config = config["origins"][origin.name]
+   sources_methods[origin_config["sources_method"]](origin.name, origin_config)
+   origin.update(timestamp=datetime.now())
 
 for rebuilder in Rebuilders.select():
     rbvfs = results_methods[rebuilder.results_method](
-        config, rebuilder.uri, rebuilder.timestamp
+        {**config, "name": rebuilder.name}, rebuilder.uri, rebuilder.timestamp
     )
     rebuilder.update(timestamp=datetime.now())
     for rbvf in rbvfs:
