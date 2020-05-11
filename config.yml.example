@@ -2,6 +2,13 @@ log: DEBUG
 url: https://rebuild.aparcar.org
 gitlab_token: "foobar"
 
+database:
+  name: collector
+  user: collector
+  password: secret
+  hostname: 127.0.0.1
+  port: 5432
+
 origins:
   archlinux:
     description: Upstream Archlinux packages
