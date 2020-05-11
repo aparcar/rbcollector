@@ -42,7 +42,7 @@ def parse_origin_packages(uri, version, target):
 
 
 def update_packages(name, config, suite_name, target):
-    origin = Origins.get_or_none(name=name)
+    origin = Origins.get(name=name)
     suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
     component, _ = Components.get_or_create(name="packages", suite=suite)
 
@@ -57,7 +57,7 @@ def update_packages(name, config, suite_name, target):
 
 
 def update_images(name, config, suite_name, target):
-    origin = Origins.get_or_none(name=name)
+    origin = Origins.get(name=name)
     suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
     component, _ = Components.get_or_create(name="images", suite=suite)
 
