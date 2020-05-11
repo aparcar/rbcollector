@@ -1,13 +1,23 @@
 import logging
 from datetime import datetime
 
+import yaml
 from peewee import *
 
-# logger = logging.getLogger("peewee")
-# logger.setLevel(logging.DEBUG)
-# logger.addHandler(logging.StreamHandler())
+with open("config.yml") as config_file:
+    config = yaml.safe_load(config_file)
 
-db = SqliteDatabase("database.db")
+logger = logging.getLogger("peewee")
+logger.setLevel(config["log"]["level"])
+logger.addHandler(logging.StreamHandler())
+
+db = PostgresqlDatabase(
+    config["database"]["name"],
+    user=config["database"]["user"],
+    password=config["database"]["password"],
+    host=config["database"]["hostname"],
+    port=config["database"]["port"],
+)
 
 
 class BaseModel(Model):
@@ -25,13 +35,19 @@ class Origins(BaseModel):
 
 
 class Suites(BaseModel):
-    name = CharField(unique=True)
+    name = CharField()
     origin = ForeignKeyField(Origins, backref="suites")
+
+    class Meta:
+        indexes = ((("name", "origin"), True),)
 
 
 class Components(BaseModel):
-    name = CharField(unique=True)
+    name = CharField()
     suite = ForeignKeyField(Suites, backref="components")
+
+    class Meta:
+        indexes = ((("name", "suite"), True),)
 
 
 class Storages(BaseModel):
