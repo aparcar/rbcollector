@@ -12,3 +12,11 @@ Currently a OpenWrt snapshot verifier is implemented, however more projects are 
 
 [rbvf]: https://github.com/aparcar/reproducible-builds-verification-format
 [diffoscope]: https://diffoscope.org/
+
+## Setup database
+
+```bash
+psql --username postgres -c "CREATE DATABASE collector"
+psql --username postgres -c "CREATE USER collector WITH PASSWORD 'secret'"
+psql --username postgres -c "GRANT ALL ON DATABASE collector TO collector"
+```

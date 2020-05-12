@@ -1,24 +1,15 @@
 from datetime import datetime
-import gzip
-import json
-import shutil
-import tempfile
-import zipfile
 from pathlib import Path
 
-import gitlab
+import yaml
 from jinja2 import Environment, FileSystemLoader
 from peewee import *
 
-import sources.archlinux
-import sources.openwrt
 import results.gitlab
 import results.rebuilderd
-
+import sources.archlinux
+import sources.openwrt
 from database import *
-
-
-import yaml
 
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
@@ -83,14 +74,13 @@ def insert_rbvf(rbvf: dict):
         if not component:
             continue
 
-        tested_version = result.pop("version")
-        target = result.pop("target")
+        target = Targets.get_or_none(name=result.pop("target"), component=component)
+        if not target:
+            print(f"ERROR: target unknown")
+            continue
 
         source = Sources.get_or_none(
-            name=result.pop("name"),
-            version=tested_version,
-            component=component,
-            target=target,
+            name=result.pop("name"), version=result.pop("version"), target=target,
         )
         if not source:
             print(f"ERROR: source unknown")
@@ -99,55 +89,46 @@ def insert_rbvf(rbvf: dict):
         result.pop("cpe", "")
         build_date = datetime.fromtimestamp(result.pop("build_date", 0))
 
-        Results.get_or_create(
+        Results.insert(
             **result,
             artifacts=artifacts,
             rebuilder=rebuilder,
             source=source,
-            tested_version=tested_version,
             build_date=build_date,
             storage_uri=storage_uri,
-        )
+        ).on_conflict_ignore().execute()
 
 
 file_loader = FileSystemLoader("templates")
 env = Environment(loader=file_loader)
 
 
-def render_target(origin, suite, component, target):
-    sources = (
-        Sources()
-        .select()
-        .join(Components)
-        .join(Suites)
-        .join(Origins)
-        .where(
-            Origins.name == origin,
-            Suites.name == suite,
-            Components.name == component,
-            Sources.target == target,
-        )
-    )
-
+def render_target(target):
     output_path = (
-        Path().cwd() / "public" / origin / suite / component / target / "index.html"
+        Path().cwd()
+        / "public"
+        / target.component.suite.origin.name
+        / target.component.suite.name
+        / target.component.name
+        / target.name
+        / "index.html"
     )
 
     template = env.get_template("target.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(sources=sources))
+    output_path.write_text(template.render(target=target))
 
 
-def render_origins(origins):
+def render_start(origins):
     output_path = Path().cwd() / "public/index.html"
-    template = env.get_template("origins.html")
+    template = env.get_template("start.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origins=origins))
 
 
 def render_suites(origin):
     output_path = Path().cwd() / "public" / origin.name / "index.html"
-    template = env.get_template("suites.html")
+    template = env.get_template("origin.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origin=origin))
 
@@ -175,9 +156,17 @@ def render_targets(component, targets):
     output_path.write_text(template.render(component=component, targets=targets))
 
 
+def render_rebuilders():
+    output_path = Path().cwd() / "public/rebuilders.html"
+    template = env.get_template("rebuilders.html")
+    output_path.parent.mkdir(exist_ok=True, parents=True)
+    output_path.write_text(template.render(rebuilders=Rebuilders.select()))
+
+
 def render():
+    render_rebuilders()
     origins = Origins.select()
-    render_origins(origins)
+    render_start(origins)
     for origin in origins:
         print(f"Rendering {origin.name}")
         render_suites(origin)
@@ -185,20 +174,19 @@ def render():
             print(f"Rendering {origin.name}/{suite.name}")
             render_components(suite)
             for component in suite.components:
-                targets = component.sources.select(Sources.target).distinct()
-                render_targets(component, targets)
-                for target in targets:
-                    render_target(
-                        origin.name, suite.name, component.name, target.target
+                print(f"Rendering {origin.name}/{suite.name}/{component.name}")
+                for target in component.targets:
+                    print(
+                        f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
                     )
+                    render_target(target)
 
 
-origins = Origins.select().execute()
-
-for origin in origins:
-   origin_config = config["origins"][origin.name]
-   sources_methods[origin_config["sources_method"]](origin.name, origin_config)
-   origin.update(timestamp=datetime.now())
+for origin in Origins.select():
+    print(f"Get sources of {origin.name}")
+    origin_config = {**config["origins"][origin.name], "name": origin.name}
+    sources_methods[origin_config["sources_method"]](origin_config)
+    origin.update(timestamp=datetime.utcnow()).execute()
 
 for rebuilder in Rebuilders.select():
     rbvfs = results_methods[rebuilder.results_method](

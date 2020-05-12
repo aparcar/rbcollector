@@ -1,8 +1,7 @@
-{% extends "base.html" %} {% block content %} {% set meta = sources | first %}
+ {% extends "base.html" %} {% block content %}
 <p style="clear:both;">
-    <h2><a href="/{{ meta.component.suite.origin.name }}">{{ meta.component.suite.origin.name }}</a> /
-        <a href="/{{ meta.component.suite.origin.name }}/{{ meta.component.suite.name }}">{{ meta.component.suite.name }}</a> /
-        <a href="/{{ meta.component.suite.origin.name }}/{{ meta.component.suite.name }}/{{ meta.component.name }}">{{ meta.component.name }}</a> / {{ meta.target }} sources
+    <h2>
+        Rebuilders
     </h2>
     <table class="table table-hover table-sm">
         <tr>
@@ -19,7 +18,7 @@
                 rebuilds
             </th>
         </tr>
-        {% for source in sources %}
+        {% for source in target.sources %}
         <tr>
             <td>
                 {{ source.name }}

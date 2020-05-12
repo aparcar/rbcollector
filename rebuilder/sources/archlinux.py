@@ -91,31 +91,30 @@ def parse_repo(repopath):
     return (reponame, pkgs)
 
 
-def update_sources(name, config):
-    print(f"Updating {name}")
+def update_sources(config):
+    print(f"Updating {config['name']}")
 
-    origin = Origins.get(name=name)
+    origin = Origins.get(name=config["name"])
 
-    target = "x86_64"
-    for suite_name in config["suites"]:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            url = f"{config['uri']}/repos/last/{suite_name}/os/{target}/{suite_name}.db.tar.gz"
-            print(url)
-            with urllib.request.urlopen(url) as response, open(
-                f"{tmpdirname}/{suite_name}.db.tar.gz", "wb"
-            ) as archive:
-                shutil.copyfileobj(response, archive)
-            reponame, pkgs = parse_repo(f"{tmpdirname}/{suite_name}.db.tar.gz")
+    for target_name in config.get("targets", []):
+        for suite_name in config["suites"]:
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                url = f"{config['uri']}/repos/last/{suite_name}/os/{target_name}/{suite_name}.db.tar.gz"
+                print(url)
+                with urllib.request.urlopen(url) as response, open(
+                    f"{tmpdirname}/{suite_name}.db.tar.gz", "wb"
+                ) as archive:
+                    shutil.copyfileobj(response, archive)
+                reponame, pkgs = parse_repo(f"{tmpdirname}/{suite_name}.db.tar.gz")
 
-        suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
-        component, _ = Components.get_or_create(name="packages", suite=suite)
+            suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
+            component, _ = Components.get_or_create(name="packages", suite=suite)
+            target, _ = Targets.get_or_create(name=target_name, component=component)
 
-
-        for name, data in pkgs.items():
-            Sources.get_or_create(
-                name=data["name"][0],
-                version=data["version"][0],
-                component=component,
-                target=data["arch"][0],
-                cpe="",
-            )
+            for name, data in pkgs.items():
+                Sources.get_or_create(
+                    name=data["name"][0],
+                    version=data["version"][0],
+                    target=target,
+                    cpe="",
+                )

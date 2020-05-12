@@ -54,15 +54,22 @@ class Storages(BaseModel):
     uri = CharField(primary_key=True)
 
 
+class Targets(BaseModel):
+    name = CharField()
+    component = ForeignKeyField(Components, backref="targets")
+
+    class Meta:
+        indexes = ((("name", "component"), True),)
+
+
 class Sources(BaseModel):
     name = CharField()
     version = CharField()
-    component = ForeignKeyField(Components, backref="sources")
-    target = CharField()
+    target = ForeignKeyField(Targets, backref="sources")
     cpe = CharField(null=True)
 
     class Meta:
-        indexes = ((("name", "version", "component", "target"), True),)
+        indexes = ((("name", "version", "target"), True),)
 
 
 class Statues(BaseModel):
@@ -92,7 +99,6 @@ class Results(BaseModel):
     source = ForeignKeyField(Sources, backref="results")
     rebuilder = ForeignKeyField(Rebuilders, backref="results")
     status = ForeignKeyField(Statues, backref="results")
-    tested_version = CharField()
     build_date = DateTimeField()
     build_duration = IntegerField(default=0)
     artifacts = ForeignKeyField(Artifacts)
@@ -100,9 +106,7 @@ class Results(BaseModel):
     storage_uri = ForeignKeyField(Storages)
 
     class Meta:
-        primary_key = CompositeKey(
-            "source", "tested_version", "rebuilder", "build_date"
-        )
+        primary_key = CompositeKey("source", "rebuilder", "build_date")
 
 
 def init_db():
@@ -112,6 +116,7 @@ def init_db():
             Suites,
             Storages,
             Components,
+            Targets,
             Sources,
             Statues,
             Rebuilders,
