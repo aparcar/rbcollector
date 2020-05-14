@@ -79,7 +79,7 @@ def update_images(name, config, suite_name, target_name):
         )
 
 
-def update_sources(config):
+def update_sources(config, timestamp):
     print(config)
     for suite in config.get("suites"):
         for target in config.get("targets"):

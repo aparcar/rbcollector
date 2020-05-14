@@ -91,7 +91,7 @@ def parse_repo(repopath):
     return (reponame, pkgs)
 
 
-def update_sources(config):
+def update_sources(config, timestamp):
     print(f"Updating {config['name']}")
 
     origin = Origins.get(name=config["name"])

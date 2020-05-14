@@ -1,15 +1,15 @@
 from datetime import datetime
-from pathlib import Path
 
 import yaml
-from jinja2 import Environment, FileSystemLoader
 from peewee import *
 
 import results.gitlab
+import results.github
 import results.rebuilderd
 import sources.archlinux
 import sources.openwrt
 from database import *
+from render import render_all
 
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
@@ -31,13 +31,20 @@ for name, origin_config in config.get("origins", {}).items():
     origin = Origins.get(name=name)
 
 
-for name, rebuilder in config.get("rebuilders", {}).items():
-    Rebuilders.insert(**rebuilder, name=name).on_conflict(
-        conflict_target=[Rebuilders.name], update=rebuilder
+for name, rebuilder_config in config.get("rebuilders", {}).items():
+    rebuilder_data = dict(
+        name=name,
+        maintainer=rebuilder_config["maintainer"],
+        contact=rebuilder_config["contact"],
+        uri=rebuilder_config["uri"],
+    )
+    Rebuilders.insert(rebuilder_data).on_conflict(
+        conflict_target=[Rebuilders.name], update=rebuilder_data
     ).execute()
 
 results_methods = {
     "gitlab": results.gitlab.get_rbvfs,
+    "github": results.github.get_rbvfs,
     "rebuilderd": results.rebuilderd.get_rbvfs,
 }
 sources_methods = {
@@ -52,7 +59,7 @@ def insert_rbvf(rbvf: dict):
     rebuilder = Rebuilders.get_or_none(Rebuilders.name == rbvf["rebuilder"]["name"])
 
     if not rebuilder:
-        print(f"Unknown rebuilder in {path}: {rbvf['rebuilder']['name']}")
+        print(f"Unknown rebuilder {rbvf['rebuilder']['name']}")
         return 1
 
     origin = Origins.get_or_none(name=rbvf.pop("origin_name"))
@@ -99,103 +106,23 @@ def insert_rbvf(rbvf: dict):
         ).on_conflict_ignore().execute()
 
 
-file_loader = FileSystemLoader("templates")
-env = Environment(loader=file_loader)
-
-
-def render_target(target):
-    output_path = (
-        Path().cwd()
-        / "public"
-        / target.component.suite.origin.name
-        / target.component.suite.name
-        / target.component.name
-        / target.name
-        / "index.html"
-    )
-
-    template = env.get_template("target.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(target=target))
-
-
-def render_start(origins):
-    output_path = Path().cwd() / "public/index.html"
-    template = env.get_template("start.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(origins=origins))
-
-
-def render_suites(origin):
-    output_path = Path().cwd() / "public" / origin.name / "index.html"
-    template = env.get_template("origin.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(origin=origin))
-
-
-def render_components(suite):
-    output_path = (
-        Path().cwd() / "public" / suite.origin.name / suite.name / "index.html"
-    )
-    template = env.get_template("components.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(suite=suite))
-
-
-def render_targets(component, targets):
-    output_path = (
-        Path().cwd()
-        / "public"
-        / component.suite.origin.name
-        / component.suite.name
-        / component.name
-        / "index.html"
-    )
-    template = env.get_template("sources.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(component=component, targets=targets))
-
-
-def render_rebuilders():
-    output_path = Path().cwd() / "public/rebuilders.html"
-    template = env.get_template("rebuilders.html")
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(rebuilders=Rebuilders.select()))
-
-
-def render():
-    render_rebuilders()
-    origins = Origins.select()
-    render_start(origins)
-    for origin in origins:
-        print(f"Rendering {origin.name}")
-        render_suites(origin)
-        for suite in origin.suites:
-            print(f"Rendering {origin.name}/{suite.name}")
-            render_components(suite)
-            for component in suite.components:
-                print(f"Rendering {origin.name}/{suite.name}/{component.name}")
-                for target in component.targets:
-                    print(
-                        f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
-                    )
-                    render_target(target)
-
-
 for origin in Origins.select():
     print(f"Get sources of {origin.name}")
     origin_config = {**config["origins"][origin.name], "name": origin.name}
-    sources_methods[origin_config["sources_method"]](origin_config)
+    sources_methods[origin_config["sources_method"]](origin_config, origin.timestamp)
     origin.update(timestamp=datetime.utcnow()).execute()
 
 for rebuilder in Rebuilders.select():
+    if rebuilder.name != "aparcar-openwrt-github":
+        continue
+
     rebuilder_config = {**config["rebuilders"][rebuilder.name], "name": rebuilder.name}
 
-    rbvfs = results_methods[rebuilder.results_method](
+    rbvfs = results_methods[rebuilder_config["results_method"]](
         rebuilder_config, rebuilder.timestamp
     )
     rebuilder.update(timestamp=datetime.now())
     for rbvf in rbvfs:
         insert_rbvf(rbvf)
 
-render()
+render_all()

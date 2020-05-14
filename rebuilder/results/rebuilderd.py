@@ -3,6 +3,7 @@ from urllib.request import urlopen
 
 
 def get_rbvfs(config: dict, timestamp):
+    print("Using Rebuilderd")
     host, distro = config["uri"].split("#")
     results = json.loads(
         urlopen(f"{host}/api/v0/pkgs/list?distro={distro}").read().decode()

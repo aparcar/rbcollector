@@ -10,10 +10,11 @@ import gitlab
 
 
 def get_rbvfs(config: dict, timestamp):
+    print("Using GitLab")
     gl = gitlab.Gitlab(
         config["gitlab"]["host"], private_token=config["gitlab"]["token"]
     )
-    project = gl.projects.get(config["gitlab"]["project"].replace("/", "%2F"))
+    project = gl.projects.get(config["gitlab"]["repo"].replace("/", "%2F"))
     jobs = project.jobs.list()
     rbvfs = []
     for job in jobs:
@@ -33,7 +34,7 @@ def get_rbvfs(config: dict, timestamp):
                     job.artifacts(streamed=True, action=f.write)
                 zip = zipfile.ZipFile(zip_path)
                 zip.extractall(path=tmp_path)
-                rbvf_path = tmp_path / config["gitlab"]["rbvf"]
+                rbvf_path = tmp_path / config["gitlab"]["path"]
                 if rbvf_path.is_file():
                     if rbvf_path.suffix == ".gz":
                         with open(rbvf_path.with_suffix(""), "wb") as f_out:

@@ -79,5 +79,18 @@ rebuilders:
     gitlab:
       token: "foobar"
       host: https://gitlab.com
-      project: aparcar/openwrt-rebuilder
-      rbvf: results/rbvf.json.gz
+      repo: aparcar/openwrt-rebuilder
+      path: results/rbvf.json
+
+  aparcar-openwrt-github:
+    maintainer: Paul Spooren
+    contact: mail@aparcar.org
+    uri: https://github.com/aparcar/openwrt-rebuilder
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: github
+    artifact_storage: False
+    github: 
+      repo: "aparcar/openwrt-rebuilder"
+      path: "rbvf.json"
+      token: "foobar"

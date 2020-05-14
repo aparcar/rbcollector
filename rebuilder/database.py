@@ -88,9 +88,6 @@ class Rebuilders(BaseModel):
     maintainer = CharField()
     contact = CharField()
     uri = CharField()
-    pubkey_pgp = CharField(default="")
-    pubkey_signify = CharField(default="")
-    results_method = CharField(default="")
     artifact_storage = BooleanField(default=False)
     timestamp = DateTimeField(default=datetime(1970, 1, 1))
 

@@ -1,7 +1,8 @@
-.direnv/
 __pycache__/
+!public/static/
+.direnv/
+.vscode/
 config.yml
 database.db
 public/*
-!public/static/
 rebuilder.egg-info
