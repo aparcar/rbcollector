@@ -1,6 +1,8 @@
-log: DEBUG
+
 url: https://rebuild.aparcar.org
-gitlab_token: "foobar"
+
+log:
+  level: INFO
 
 database:
   name: collector
@@ -13,13 +15,15 @@ origins:
   archlinux:
     description: Upstream Archlinux packages
     alias: Archlinux
-    uri: https://www.archlinux.org/download/
+    uri: https://archive.archlinux.org
     website: https://archlinux.org
     sources_method: archlinux
     interval: 720 # 12 hours
     suites:
       - core
       - extra
+    targets:
+      - x86_64
 
   openwrt:
     description: Upstream OpenWrt images and packages
@@ -33,12 +37,32 @@ origins:
     targets:
       - x86/64
       - ath79/generic
+      - ramips/mt7620
+      - ramips/mt7621
 
 rebuilders:
-  rebuilderd-archlinux:
+  archlinux-rebuilderd-official:
+    maintainer: unknown
+    contact: https://reproducible.archlinux.org
+    uri: https://reproducible.archlinux.org#archlinux
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: rebuilderd
+    artifact_storage: False
+
+  archlinux-rebuilderd-wolfpit:
+    maintainer: unknown
+    contact: https://wolfpit.net
+    uri: https://wolfpit.net/rebuild#archlinux
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: rebuilderd
+    artifact_storage: False
+
+  archlinux-rebuilderd-fzylab:
     maintainer: unknown
     contact: unknown
-    uri: https://reproducible.archlinux.org#archlinux
+    uri: https://rebuilder.fzylab.net#archlinux
     pubkey_signify: ""
     pubkey_pgp: ""
     results_method: rebuilderd
@@ -47,8 +71,13 @@ rebuilders:
   aparcar-openwrt-gitlab:
     maintainer: Paul Spooren
     contact: mail@aparcar.org
-    uri: https://gitlab.com#aparcar/rebuild
+    uri: https://gitlab.com/aparcar/openwrt-rebuilder
     pubkey_signify: ""
     pubkey_pgp: ""
     results_method: gitlab
     artifact_storage: True
+    gitlab:
+      token: "foobar"
+      host: https://gitlab.com
+      project: aparcar/openwrt-rebuilder
+      rbvf: results/rbvf.json.gz

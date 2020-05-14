@@ -16,7 +16,9 @@ def get_target_url(uri, version, target):
 def parse_origin_images(uri, version, target_name):
     return re.findall(
         f".+? \*(openwrt-{target_name.replace('/', '-')}.+?.)\n",
-        urlopen(get_target_url(uri, version, target_name) + "/sha256sums").read().decode(),
+        urlopen(get_target_url(uri, version, target_name) + "/sha256sums")
+        .read()
+        .decode(),
     )
 
 
@@ -61,8 +63,9 @@ def update_images(name, config, suite_name, target_name):
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
     version = (
-         urlopen(
-            get_target_url(config.get("uri"), suite_name, target_name) + "/version.buildinfo"
+        urlopen(
+            get_target_url(config.get("uri"), suite_name, target_name)
+            + "/version.buildinfo"
         )
         .read()
         .decode()

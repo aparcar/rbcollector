@@ -9,10 +9,11 @@ from pathlib import Path
 import gitlab
 
 
-def get_rbvfs(config: dict, uri: str, timestamp):
-    host, project = uri.split("#")
-    gl = gitlab.Gitlab(host, private_token=config.get("gitlab_token"))
-    project = gl.projects.get(project.replace("/", "%2F"))
+def get_rbvfs(config: dict, timestamp):
+    gl = gitlab.Gitlab(
+        config["gitlab"]["host"], private_token=config["gitlab"]["token"]
+    )
+    project = gl.projects.get(config["gitlab"]["project"].replace("/", "%2F"))
     jobs = project.jobs.list()
     rbvfs = []
     for job in jobs:
@@ -32,12 +33,16 @@ def get_rbvfs(config: dict, uri: str, timestamp):
                     job.artifacts(streamed=True, action=f.write)
                 zip = zipfile.ZipFile(zip_path)
                 zip.extractall(path=tmp_path)
-                rbvf_path = tmp_path / "output/rbvf.json.gz"
+                rbvf_path = tmp_path / config["gitlab"]["rbvf"]
                 if rbvf_path.is_file():
-                    with open(rbvf_path.with_suffix(""), "wb") as f_out:
-                        with gzip.open(rbvf_path, "rb") as f_in:
-                            shutil.copyfileobj(f_in, f_out)
-                    rbvf = json.loads(rbvf_path.with_suffix("").read_text())
+                    if rbvf_path.suffix == ".gz":
+                        with open(rbvf_path.with_suffix(""), "wb") as f_out:
+                            with gzip.open(rbvf_path, "rb") as f_in:
+                                shutil.copyfileobj(f_in, f_out)
+                        rbvf_path = rbvf_path.with_suffix("")
+                    rbvf = json.loads(rbvf_path.read_text())
                     rbvf["storage_uri"] = f"{job.web_url}/artifacts/file/"
                     rbvfs.append(rbvf)
+                else:
+                    print(f"WARNING: rbvf file {rbvf_path} not found")
     return rbvfs

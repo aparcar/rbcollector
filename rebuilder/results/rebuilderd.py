@@ -1,10 +1,9 @@
 import json
 from urllib.request import urlopen
-from datetime import datetime
 
 
-def get_rbvfs(config: dict, uri: str, timestamp):
-    host, distro = uri.split("#")
+def get_rbvfs(config: dict, timestamp):
+    host, distro = config["uri"].split("#")
     results = json.loads(
         urlopen(f"{host}/api/v0/pkgs/list?distro={distro}").read().decode()
     )

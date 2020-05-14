@@ -189,8 +189,10 @@ for origin in Origins.select():
     origin.update(timestamp=datetime.utcnow()).execute()
 
 for rebuilder in Rebuilders.select():
+    rebuilder_config = {**config["rebuilders"][rebuilder.name], "name": rebuilder.name}
+
     rbvfs = results_methods[rebuilder.results_method](
-        {**config, "name": rebuilder.name}, rebuilder.uri, rebuilder.timestamp
+        rebuilder_config, rebuilder.timestamp
     )
     rebuilder.update(timestamp=datetime.now())
     for rbvf in rbvfs:
