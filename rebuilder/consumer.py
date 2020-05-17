@@ -28,19 +28,15 @@ for name, origin_config in config.get("origins", {}).items():
         conflict_target=[Origins.name], update=origin_data
     ).execute()
 
-    origin = Origins.get(name=name)
-
 
 for name, rebuilder_config in config.get("rebuilders", {}).items():
-    rebuilder_data = dict(
+    origin = Origins.get(name=rebuilder_config.get("origin"))
+
+    Rebuilders.insert(
         name=name,
-        maintainer=rebuilder_config["maintainer"],
-        contact=rebuilder_config["contact"],
         uri=rebuilder_config["uri"],
-    )
-    Rebuilders.insert(rebuilder_data).on_conflict(
-        conflict_target=[Rebuilders.name], update=rebuilder_data
-    ).execute()
+        origin=origin,
+    ).on_conflict_ignore().execute()
 
 results_methods = {
     "gitlab": results.gitlab.get_rbvfs,
@@ -51,9 +47,6 @@ sources_methods = {
     "archlinux": sources.archlinux.update_sources,
     "openwrt": sources.openwrt.update_sources,
 }
-
-target_map = {"x86_64": "x86/64"}
-
 
 def insert_rbvf(rbvf: dict):
     rebuilder = Rebuilders.get_or_none(Rebuilders.name == rbvf["rebuilder"]["name"])
@@ -74,7 +67,7 @@ def insert_rbvf(rbvf: dict):
         artifacts, _ = Artifacts.get_or_create(**result.pop("artifacts"))
         suite = Suites.get_or_none(name=result.pop("suite"), origin=origin)
         if not suite:
-            # print("skip unknown suite")
+            print("Skip unknown suite")
             continue
 
         component = Components.get_or_none(name=result.pop("component"), suite=suite)
@@ -121,4 +114,4 @@ for rebuilder in Rebuilders.select():
     for rbvf in rbvfs:
         insert_rbvf(rbvf)
 
-render_all()
+render_all(config["rebuilders"])

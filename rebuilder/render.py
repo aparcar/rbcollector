@@ -26,9 +26,13 @@ def render_target(target):
         .order_by(Sources.name)
     )
 
+    rebuilders = target.component.suite.origin.rebuilders
+
     template = env.get_template("target.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(target=target, sources=sources))
+    output_path.write_text(
+        template.render(target=target, sources=sources, rebuilders=rebuilders)
+    )
 
 
 def render_start(origins):
@@ -68,15 +72,15 @@ def render_targets(component, targets):
     output_path.write_text(template.render(component=component, targets=targets))
 
 
-def render_rebuilders():
+def render_rebuilders(rebuilders):
     output_path = Path().cwd() / "public/rebuilders.html"
     template = env.get_template("rebuilders.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(rebuilders=Rebuilders.select()))
+    output_path.write_text(template.render(rebuilders=rebuilders))
 
 
-def render_all():
-    render_rebuilders()
+def render_all(rebuilders):
+    render_rebuilders(rebuilders)
     origins = Origins.select()
     render_start(origins)
     for origin in origins:
@@ -92,7 +96,3 @@ def render_all():
                         f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
                     )
                     render_target(target)
-
-
-if __name__ == "__main__":
-    render_all()

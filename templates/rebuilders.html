@@ -16,17 +16,17 @@
                 Artifact Support
             </th>
         </tr>
-        {% for rebuilder in rebuilders %}
+        {% for name, data in rebuilders.items() %}
         <tr>
             <td>
-                <a href="{{ rebuilder.uri }}">{{ rebuilder.name }}</a>
+                <a href="{{ data['uri'] }}">{{ name }}</a>
             </td>
             <td>
-                <a href="{{ rebuilder.contact }}">{{ rebuilder.maintainer }}</a>
+                <a href="{{ data['contact'] }}">{{ data['maintainer'] }}</a>
             </td>
 
             <td>
-                {{ rebuilder.artifact_storage }}
+                {{ data['artifact_storage'] }}
             </td>
         </tr>
         {% endfor %}

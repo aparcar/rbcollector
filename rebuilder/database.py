@@ -86,11 +86,9 @@ class Artifacts(BaseModel):
 
 class Rebuilders(BaseModel):
     name = CharField(unique=True)
-    maintainer = CharField()
-    contact = CharField()
     uri = CharField()
-    artifact_storage = BooleanField(default=False)
     timestamp = DateTimeField(default=datetime(1970, 1, 1))
+    origin = ForeignKeyField(Origins, backref="rebuilders")
 
 
 class Results(BaseModel):
