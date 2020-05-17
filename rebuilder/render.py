@@ -1,5 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+import yaml
+from collections import namedtuple
 
 from database import *
 
@@ -18,9 +20,11 @@ def render_target(target):
         / "index.html"
     )
 
+    sources = target.sources.select().order_by(Sources.name)
+
     template = env.get_template("target.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.write_text(template.render(target=target))
+    output_path.write_text(template.render(target=target, sources = sources))
 
 
 def render_start(origins):
@@ -66,7 +70,6 @@ def render_rebuilders():
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(rebuilders=Rebuilders.select()))
 
-
 def render_all():
     render_rebuilders()
     origins = Origins.select()
@@ -84,3 +87,7 @@ def render_all():
                         f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
                     )
                     render_target(target)
+                    return
+
+if __name__ == "__main__":
+    render_all()

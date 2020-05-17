@@ -1,43 +1,48 @@
  {% extends "base.html" %} {% block content %}
-<p style="clear:both;">
-    <h2>
-        Rebuilders
-    </h2>
-    <table class="table table-hover table-sm">
-        <tr>
-            <th scope="col">
-                name
-            </th>
-            <th scope="col">
-                version
-            </th>
-            <th scope="col">
-                cpe
-            </th>
-            <th scope="col">
-                rebuilds
-            </th>
-        </tr>
-        {% for source in target.sources %}
-        <tr>
-            <td>
-                {{ source.name }}
-            </td>
-            <td>
-                {{ source.version }}
-            </td>
-            <td>
-                {{ source.cpe}}
-            </td>
-            <td>
-                {% for result in source.results %}
-                <a href="{{ result.storage_uri.uri }}/output/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
-                    <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
-                </a>
-                {% else %}
-                <img src="/static/untested.png" alt="untested icon"> {% endfor %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% endblock %}
+<h2>
+    {{ target.component.suite.origin.name }} / {{ target.component.suite.name }} / {{ target.component.name }} / {{ target.name }} Sources ({{ sources | length }})
+</h2>
+<fieldset>
+    <legend>States</legend>
+    <ul>
+        <li><img src="/static/untested.png" alt="untested icon"> Untested</li>
+        <li><img src="/static/reproducible.png" alt="untested icon"> Reproducible</li>
+        <li><img src="/static/unreproducible.png" alt="untested icon"> Unreproducible</li>
+    </ul>
+</fieldset>
+
+
+<h3>Rebuild results</h3>
+<table class="table table-hover table-sm">
+    <tr>
+        <th scope="col">
+            name
+        </th>
+        <th scope="col">
+            version
+        </th>
+        <th scope="col">
+            rebuilds
+        </th>
+    </tr>
+    {% for source in sources %}
+
+    <tr>
+        <td>
+            {{ source.name }}
+        </td>
+        <td>
+            {{ source.version }}
+        </td>
+        <td>
+            {% for result in source.results %}
+            <a href="{{ result.storage_uri.uri }}/output/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
+                <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
+            </a>
+            {% else %}
+            <img src="/static/untested.png" alt="untested icon"> {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
