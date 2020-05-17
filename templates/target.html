@@ -55,7 +55,7 @@
         </td>
         <td>
             {% for result in source.results %}
-            <a href="{{ result.storage_uri.uri }}/output/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
+            <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
                 <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
             </a>
             {% else %}

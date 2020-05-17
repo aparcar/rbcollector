@@ -44,7 +44,7 @@ def get_rbvfs(config: dict, timestamp):
                             shutil.copyfileobj(f_in, f_out)
                     rbvf_path = rbvf_path.with_suffix("")
                 rbvf = json.loads(rbvf_path.read_text())
-                rbvf["storage_uri"] = f"{job.web_url}/artifacts/file/"
+                rbvf["storage_uri"] = f"{job.web_url}/artifacts/file/results/"
                 rbvfs.append(rbvf)
             else:
                 print(f"WARNING: rbvf file {rbvf_path} not found")
