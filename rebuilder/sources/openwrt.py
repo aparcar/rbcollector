@@ -1,7 +1,7 @@
 import email.parser
 from os import environ
-from urllib.request import urlopen
 import re
+import requests
 
 from rebuilder.database import *
 
@@ -16,21 +16,14 @@ def get_target_url(uri, version, target):
 def parse_origin_images(uri, version, target_name):
     return re.findall(
         f".+? \*(openwrt-{target_name.replace('/', '-')}.+?.)\n",
-        urlopen(get_target_url(uri, version, target_name) + "/sha256sums")
-        .read()
-        .decode(),
+        requests.get(get_target_url(uri, version, target_name) + "/sha256sums").text,
     )
 
 
-def parse_origin_packages(uri, version, target_name):
+def parse_origin_packages(packages_text):
     packages = []
     linebuffer = ""
-    for line in (
-        urlopen(get_target_url(uri, version, target_name) + "/packages/Packages")
-        .read()
-        .decode()
-        .splitlines()
-    ):
+    for line in packages_text.splitlines():
         if line == "":
             parser = email.parser.Parser()
             package = parser.parsestr(linebuffer)
@@ -47,13 +40,27 @@ def update_packages(name, config, suite_name, target_name):
     component, _ = Components.get_or_create(name="packages", suite=suite)
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
-    for source in parse_origin_packages(config["uri"], suite_name, target_name):
+    packages_req = requests.get(
+        get_target_url(config["uri"], suite_name, target_name) + "/packages/Packages"
+    )
+
+    last_modified = datetime.strptime(
+        packages_req.headers.get("last-modified"), "%a, %d %b %Y %H:%M:%S %Z"
+    )
+
+    if target.timestamp >= last_modified:
+        print(f"No source updates for {suite_name}/{component.name}/{target.name}")
+        return
+
+    for source in parse_origin_packages(packages_req.text):
         Sources.get_or_create(
             name=source["Package"],
             version=source["Version"],
             target=target,
             cpe=source.get("CPE-ID", ""),
         )
+
+    Targets.update(timestamp=last_modified).where(Targets.id == target).execute()
 
 
 def update_images(name, config, suite_name, target_name):
@@ -62,24 +69,33 @@ def update_images(name, config, suite_name, target_name):
     component, _ = Components.get_or_create(name="images", suite=suite)
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
-    version = (
-        urlopen(
-            get_target_url(config.get("uri"), suite_name, target_name)
-            + "/version.buildinfo"
-        )
-        .read()
-        .decode()
-        .strip()
-        .split("-")[1]
+    version_req = requests.get(
+        get_target_url(config.get("uri"), suite_name, target_name)
+        + "/version.buildinfo"
     )
 
+    last_modified = datetime.strptime(
+        version_req.headers.get("last-modified"), "%a, %d %b %Y %H:%M:%S %Z"
+    )
+
+    if target.timestamp >= last_modified:
+        print(f"No source updates for {suite_name}/{component.name}/{target.name}")
+        return
+
+    version = version_req.text.strip().split("-")[1]
+
     for image in parse_origin_images(config["uri"], suite_name, target_name):
-        Sources.get_or_create(
-            name=image, version=version, target=target, cpe="",
-        )
+        Sources.insert(
+            name=image, version=version, target=target, cpe="", timestamp=last_modified,
+        ).on_conflict(
+            conflict_target=[Sources.name, Sources.version, Sources.target],
+            update={Sources.timestamp: last_modified},
+        ).execute()
+
+    Targets.update(timestamp=last_modified).where(Targets.id == target).execute()
 
 
-def update_sources(config, timestamp):
+def update_sources(config):
     print(config)
     for suite in config.get("suites"):
         for target in config.get("targets"):

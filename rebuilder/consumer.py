@@ -20,7 +20,7 @@ for name, origin_config in config.get("origins", {}).items():
     origin_data = dict(
         name=name,
         alias=origin_config["alias"],
-        description=origin_config["description"],
+        desc_short=origin_config["desc_short"],
         uri=origin_config["uri"],
         website=origin_config["website"],
     )
@@ -109,20 +109,19 @@ def insert_rbvf(rbvf: dict):
 for origin in Origins.select():
     print(f"Get sources of {origin.name}")
     origin_config = {**config["origins"][origin.name], "name": origin.name}
-    sources_methods[origin_config["sources_method"]](origin_config, origin.timestamp)
-    origin.update(timestamp=datetime.utcnow()).execute()
+    sources_methods[origin_config["sources_method"]](origin_config)
 
-for rebuilder in Rebuilders.select():
-    if rebuilder.name != "aparcar-openwrt-github":
-        continue
+# for rebuilder in Rebuilders.select():
+#     if rebuilder.name != "aparcar-openwrt-github":
+#         continue
 
-    rebuilder_config = {**config["rebuilders"][rebuilder.name], "name": rebuilder.name}
+#     rebuilder_config = {**config["rebuilders"][rebuilder.name], "name": rebuilder.name}
 
-    rbvfs = results_methods[rebuilder_config["results_method"]](
-        rebuilder_config, rebuilder.timestamp
-    )
-    rebuilder.update(timestamp=datetime.now())
-    for rbvf in rbvfs:
-        insert_rbvf(rbvf)
+#     rbvfs = results_methods[rebuilder_config["results_method"]](
+#         rebuilder_config, rebuilder.timestamp
+#     )
+#     rebuilder.update(timestamp=datetime.now())
+#     for rbvf in rbvfs:
+#         insert_rbvf(rbvf)
 
 render_all()

@@ -9,7 +9,8 @@ import tempfile
 import urllib
 from os import environ
 from pathlib import Path
-from urllib.request import urlopen
+
+import requests
 
 from time import sleep
 from rebuilder.database import *
@@ -91,30 +92,43 @@ def parse_repo(repopath):
     return (reponame, pkgs)
 
 
-def update_sources(config, timestamp):
+def update_sources(config):
     print(f"Updating {config['name']}")
 
     origin = Origins.get(name=config["name"])
 
-    for target_name in config.get("targets", []):
-        for suite_name in config["suites"]:
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                url = f"{config['uri']}/repos/last/{suite_name}/os/{target_name}/{suite_name}.db.tar.gz"
-                print(url)
-                with urllib.request.urlopen(url) as response, open(
-                    f"{tmpdirname}/{suite_name}.db.tar.gz", "wb"
-                ) as archive:
-                    shutil.copyfileobj(response, archive)
-                reponame, pkgs = parse_repo(f"{tmpdirname}/{suite_name}.db.tar.gz")
-
+    for suite_name in config["suites"]:
+        print(f"Updating {suite_name}")
+        for target_name in config.get("targets", []):
             suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
             component, _ = Components.get_or_create(name="packages", suite=suite)
             target, _ = Targets.get_or_create(name=target_name, component=component)
 
+            url = f"{config['uri']}/repos/last/{suite_name}/os/{target_name}/{suite_name}.db.tar.gz"
+            req = requests.get(url)
+            last_modified = datetime.strptime(
+                req.headers.get("last-modified"), "%a, %d %b %Y %H:%M:%S %Z"
+            )
+
+            if target.timestamp >= last_modified:
+                print(f"No source updates for {suite_name}/packages/{target.name}")
+                continue
+
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                Path(f"{tmpdirname}/{suite_name}.db.tar.gz").write_bytes(req.content)
+                reponame, pkgs = parse_repo(f"{tmpdirname}/{suite_name}.db.tar.gz")
+
             for name, data in pkgs.items():
-                Sources.get_or_create(
+                Sources.insert(
                     name=data["name"][0],
                     version=data["version"][0],
                     target=target,
                     cpe="",
-                )
+                    timestamp=last_modified,
+                ).on_conflict(
+                    conflict_target=[Sources.name, Sources.version, Sources.target],
+                    update={Sources.timestamp: last_modified},
+                ).execute()
+            Targets.update(timestamp=last_modified).where(
+                Targets.id == target
+            ).execute()

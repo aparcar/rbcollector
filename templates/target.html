@@ -1,16 +1,35 @@
  {% extends "base.html" %} {% block content %}
-<h2>
-    {{ target.component.suite.origin.name }} / {{ target.component.suite.name }} / {{ target.component.name }} / {{ target.name }} Sources ({{ sources | length }})
-</h2>
-<fieldset>
-    <legend>States</legend>
-    <ul>
-        <li><img src="/static/untested.png" alt="untested icon"> Untested</li>
-        <li><img src="/static/reproducible.png" alt="untested icon"> Reproducible</li>
-        <li><img src="/static/unreproducible.png" alt="untested icon"> Unreproducible</li>
-    </ul>
-</fieldset>
+<h3>
+    {{ target.component.suite.origin.name }} / {{ target.component.suite.name }} / {{ target.component.name }} / {{ target.name }} Sources
+</h3>
 
+<div class="row">
+    <div class="col-sm-8">
+
+        <div class="card">
+            <div class="card-header">
+                Info
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Source: {{ target.sources | length }}</li>
+                <li class="list-group-item">Last update: {{ target.timestamp }}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-sm-4">
+
+        <div class="card">
+            <div class="card-header">
+                Legend
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><img src="/static/untested.png" alt="untested icon"> Untested</li>
+                <li class="list-group-item"><img src="/static/reproducible.png" alt="untested icon"> Reproducible</li>
+                <li class="list-group-item"><img src="/static/unreproducible.png" alt="untested icon"> Unreproducible</li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <h3>Rebuild results</h3>
 <table class="table table-hover table-sm">

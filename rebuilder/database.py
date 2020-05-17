@@ -28,10 +28,9 @@ class BaseModel(Model):
 class Origins(BaseModel):
     name = CharField(unique=True)
     alias = CharField(unique=True)
-    description = TextField(default="")
+    desc_short = TextField(default="")
     uri = CharField()
     website = CharField(default="")
-    timestamp = DateTimeField(default=datetime(1970, 1, 1))
 
 
 class Suites(BaseModel):
@@ -57,6 +56,7 @@ class Storages(BaseModel):
 class Targets(BaseModel):
     name = CharField()
     component = ForeignKeyField(Components, backref="targets")
+    timestamp = DateTimeField(default=datetime(1970, 1, 1))
 
     class Meta:
         indexes = ((("name", "component"), True),)
@@ -67,6 +67,7 @@ class Sources(BaseModel):
     version = CharField()
     target = ForeignKeyField(Targets, backref="sources")
     cpe = CharField(null=True)
+    timestamp = DateTimeField(default=datetime(1970, 1, 1))
 
     class Meta:
         indexes = ((("name", "version", "target"), True),)
