@@ -6,7 +6,7 @@ from collections import namedtuple
 from database import *
 
 file_loader = FileSystemLoader("templates")
-env = Environment(loader=file_loader)
+env = Environment(loader=file_loader, extensions=["jinja2.ext.do"])
 
 
 def render_target(target):

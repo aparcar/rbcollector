@@ -56,9 +56,8 @@
             rebuilds
         </th>
     </tr>
-    {% for source in sources %}
-
-    <tr>
+    {% for source in sources %} {% set ns = namespace(statues = []) %}{% for result in source.results %}{% do ns.statues.append(result.status) %}{% endfor %}
+    <tr class="{{ ns.statues | unique | join(' ') }}">
         <td>
             {{ source.name }}
         </td>
@@ -67,6 +66,7 @@
         </td>
         <td>
             {% for result in source.results %}
+
             <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
                 <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
             </a>
