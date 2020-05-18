@@ -21,13 +21,11 @@
     <div class="row">
         {% for origin in origins %}
         <div class="col">
-            <div class="col-sm-4">
-                <div class="card">
-                    <h5 class="card-header">{{ origin.alias }}</h5>
-                    <div class="card-body">
-                        <p class="card-text">{{ origin.desc_short }}.</p>
-                        <a href="/{{ origin.name }}/index.html" class="btn btn-primary">View results</a>
-                    </div>
+            <div class="card">
+                <h5 class="card-header">{{ origin.alias }}</h5>
+                <div class="card-body">
+                    <p class="card-text">{{ origin.desc_short }}.</p>
+                    <a href="/{{ origin.name }}/index.html" class="btn btn-primary">View results</a>
                 </div>
             </div>
         </div>

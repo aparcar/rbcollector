@@ -149,7 +149,10 @@ for rebuilder in Rebuilders.select():
     rbvfs = results_methods[rebuilder_config["results_method"]](
         rebuilder_config, rebuilder.timestamp
     )
-    rebuilder.update(timestamp=datetime.now())
+    Rebuilders.update(timestamp=datetime.utcnow()).where(
+        Rebuilders.id == rebuilder
+    ).execute()
+
     for rbvf in rbvfs:
         insert_rbvf(rbvf)
 

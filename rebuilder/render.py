@@ -86,7 +86,6 @@ def render_all(rebuilders):
     for origin in origins:
         print(f"Rendering {origin.name}")
         render_suites(origin)
-        continue
         for suite in origin.suites:
             print(f"Rendering {origin.name}/{suite.name}")
             render_components(suite)
