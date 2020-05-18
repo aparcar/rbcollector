@@ -53,12 +53,16 @@ def update_packages(name, config, suite_name, target_name):
         return
 
     for source in parse_origin_packages(packages_req.text):
-        Sources.get_or_create(
+        Sources.insert(
             name=source["Package"],
             version=source["Version"],
             target=target,
             cpe=source.get("CPE-ID", ""),
-        )
+            timestamp=last_modified,
+        ).on_conflict(
+            conflict_target=[Sources.name, Sources.version, Sources.target],
+            update={Sources.timestamp: last_modified},
+        ).execute()
 
     Targets.update(timestamp=last_modified).where(Targets.id == target).execute()
 
