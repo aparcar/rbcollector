@@ -10,9 +10,14 @@ import sources.archlinux
 import sources.openwrt
 from database import *
 from render import render_all
+import logging
 
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
+
+logger = logging.getLogger("consumer")
+logger.setLevel(config["log"]["level"])
+logger.addHandler(logging.StreamHandler())
 
 init_db()
 
@@ -33,9 +38,7 @@ for name, rebuilder_config in config.get("rebuilders", {}).items():
     origin = Origins.get(name=rebuilder_config.get("origin"))
 
     Rebuilders.insert(
-        name=name,
-        uri=rebuilder_config["uri"],
-        origin=origin,
+        name=name, uri=rebuilder_config["uri"], origin=origin,
     ).on_conflict_ignore().execute()
 
 results_methods = {
@@ -48,49 +51,85 @@ sources_methods = {
     "openwrt": sources.openwrt.update_sources,
 }
 
+
 def insert_rbvf(rbvf: dict):
     rebuilder = Rebuilders.get_or_none(Rebuilders.name == rbvf["rebuilder"]["name"])
 
     if not rebuilder:
         print(f"Unknown rebuilder {rbvf['rebuilder']['name']}")
-        return 1
+        return False
 
-    origin = Origins.get_or_none(name=rbvf.pop("origin_name"))
+    origin_name = rbvf.get("origin_name")
+    if not origin_name:
+        logger.warning("origin_name missing in rbvf")
+        return False
+    origin = Origins.get_or_none(name=origin_name)
 
     if not origin:
-        print(f"Unknown origin in {path}")
-        return 1
+        logger.warning(f"Unknown origin {origin_name}")
+        return False
 
     storage_uri, _ = Storages.get_or_create(uri=rbvf.pop("storage_uri", ""))
 
     for result in rbvf["results"]:
+        status = result.get("status")
+        if not status:
+            logger.warning("status mising")
+            continue
+
         artifacts, _ = Artifacts.get_or_create(**result.pop("artifacts"))
-        suite = Suites.get_or_none(name=result.pop("suite"), origin=origin)
+
+        suite_name = result.get("suite")
+        if not suite_name:
+            logger.warning("suite mising")
+            continue
+
+        suite = Suites.get_or_none(name=suite_name, origin=origin)
         if not suite:
-            print("Skip unknown suite")
+            logger.warning(f"skip unknown suite {suite_name}")
             continue
 
-        component = Components.get_or_none(name=result.pop("component"), suite=suite)
+        component_name = result.get("component")
+        if not component_name:
+            logger.warning("component mising")
+            continue
+
+        component = Components.get_or_none(name=component_name, suite=suite)
         if not component:
+            logger.warning(f"skip unknown component {component_name}")
             continue
 
-        target = Targets.get_or_none(name=result.pop("target"), component=component)
-        if not target:
-            print(f"ERROR: target unknown")
+        target_name = result.get("target")
+        if not target_name:
+            logger.warning("target mising")
+            continue
+
+        target = Targets.get_or_none(name=target_name, component=component)
+        if not component:
+            logger.warning(f"skip unknown target {target_name}")
+            continue
+
+        source_name = result.get("name")
+        if not source_name:
+            logger.warning("result source name mising")
+            continue
+
+        source_version = result.get("version")
+        if not source_version:
+            logger.warning("result source version mising")
             continue
 
         source = Sources.get_or_none(
-            name=result.pop("name"), version=result.pop("version"), target=target,
+            name=source_name, version=source_version, target=target
         )
         if not source:
-            print(f"ERROR: source unknown")
+            logger.warning(f"skip unknown source {result}")
             continue
 
-        result.pop("cpe", "")
         build_date = datetime.fromtimestamp(result.pop("build_date", 0))
 
         Results.insert(
-            **result,
+            status=status,
             artifacts=artifacts,
             rebuilder=rebuilder,
             source=source,

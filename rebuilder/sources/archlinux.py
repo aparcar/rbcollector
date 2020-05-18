@@ -99,9 +99,17 @@ def update_sources(config):
 
     for suite_name in config["suites"]:
         print(f"Updating {suite_name}")
+
+        suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
+        component, _ = Components.get_or_create(name="packages", suite=suite)
+
+        arch_independent_identifier = config.get("arch_independent_identifier")
+        if arch_independent_identifier:
+            target_independent, _ = Targets.get_or_create(
+                name=arch_independent_identifier, component=component
+            )
+
         for target_name in config.get("targets", []):
-            suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
-            component, _ = Components.get_or_create(name="packages", suite=suite)
             target, _ = Targets.get_or_create(name=target_name, component=component)
 
             url = f"{config['uri']}/repos/last/{suite_name}/os/{target_name}/{suite_name}.db.tar.gz"
@@ -119,10 +127,15 @@ def update_sources(config):
                 reponame, pkgs = parse_repo(f"{tmpdirname}/{suite_name}.db.tar.gz")
 
             for name, data in pkgs.items():
+                if data["arch"][0] == arch_independent_identifier:
+                    package_target = target_independent
+                else:
+                    package_target = target
+
                 Sources.insert(
                     name=data["name"][0],
                     version=data["version"][0],
-                    target=target,
+                    target=package_target,
                     cpe="",
                     timestamp=last_modified,
                 ).on_conflict(
@@ -132,3 +145,7 @@ def update_sources(config):
             Targets.update(timestamp=last_modified).where(
                 Targets.id == target
             ).execute()
+            if target_independent:
+                Targets.update(timestamp=last_modified).where(
+                    Targets.id == target_independent
+                ).execute()
