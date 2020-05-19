@@ -4,6 +4,7 @@ import re
 import requests
 
 from rebuilder.database import *
+from email.utils import getaddresses
 
 
 def get_target_url(uri, version, target):
@@ -53,15 +54,21 @@ def update_packages(name, config, suite_name, target_name):
         return
 
     for source in parse_origin_packages(packages_req.text):
+        maintainers = getaddresses(source.get("Maintainer", [""]))
+        maintainer, _ = Maintainers.get_or_create(
+            email=maintainers[1], name=maintainers[0]
+        )
+
         Sources.insert(
             name=source["Package"],
             version=source["Version"],
             target=target,
             cpe=source.get("CPE-ID", ""),
+            maintainer=maintainer,
             timestamp=last_modified,
         ).on_conflict(
             conflict_target=[Sources.name, Sources.version, Sources.target],
-            update={Sources.timestamp: last_modified},
+            update={Sources.timestamp: last_modified, Sources.maintainer: maintainer,},
         ).execute()
 
     Targets.update(timestamp=last_modified).where(Targets.id == target).execute()

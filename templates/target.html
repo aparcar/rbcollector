@@ -14,7 +14,12 @@ function set_focus(link) {
       var sources = Array.from(document.getElementsByClassName(link.id)); 
       sources.map(element => element.style.display = "table-row");
   }
-} 
+}
+
+function reverse_mailto(reversed_mail, source) {
+    location.href = 'mailto:' + reversed_mail.split("").reverse().join("") +
+        '?subject=Reproducibility of "' + source + '"'
+}
 {% endblock %}
 {% block content %}
 <h3>
@@ -71,7 +76,10 @@ function set_focus(link) {
             Name
         </th>
         <th scope="col">
-            Version
+            Current version
+        </th>
+        <th scope="col">
+            Maintainer
         </th>
         <th scope="col">
             Rebuilds
@@ -84,24 +92,28 @@ function set_focus(link) {
         {% else %} 
             {% set ns.statues = ["untested"] %}
         {% endfor %}
-    <tr class="source {{ ns.statues | unique | join(' ') }}">
-        <td>
-            {{ source.name }}
-        </td>
-        <td>
-            {{ source.version }}
-        </td>
-        <td>
+        <tr class="source {{ ns.statues | unique | join(' ') }}">
+            <td>
+                {{ source.name }}
+            </td>
+            <td>
+                {{ source.version }}
+            </td>
+            <td>
+                <a href="javascript:reverse_mailto('{{ source.maintainer.email | reverse }}', '{{ source.name }}')">
+                    {{ source.maintainer.name }}
+                </a>
+            </td>
+            <td>
             {% for result in source.results %}
-
-            <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
-                <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
-            </a>
+                <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
+                    <img src="/static/{{ result.status }}.png" alt="{{ result.status }} icon">
+                </a>
             {% else %}
                 <img src="/static/untested.png" alt="untested icon"> 
             {% endfor %}
-        </td>
-    </tr>
+            </td>
+        </tr>
     {% endfor %}
 </table>
 <script>

@@ -62,11 +62,21 @@ class Targets(BaseModel):
         indexes = ((("name", "component"), True),)
 
 
+class Maintainers(BaseModel):
+    email = CharField()
+    name = CharField(default="")
+
+    class Meta:
+        indexes = ((("email", "name"), True),)
+
+
+
 class Sources(BaseModel):
     name = CharField()
     version = CharField()
     target = ForeignKeyField(Targets, backref="sources")
     cpe = CharField(null=True)
+    maintainer = ForeignKeyField(Maintainers, backref="maintained", null=True)
     timestamp = DateTimeField(default=datetime(1970, 1, 1))
 
     class Meta:
@@ -113,6 +123,7 @@ def init_db():
             Storages,
             Components,
             Targets,
+            Maintainers,
             Sources,
             Statues,
             Rebuilders,

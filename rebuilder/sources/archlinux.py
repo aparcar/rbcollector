@@ -10,6 +10,8 @@ import urllib
 from os import environ
 from pathlib import Path
 
+from email.utils import getaddresses
+
 import requests
 
 from time import sleep
@@ -132,15 +134,24 @@ def update_sources(config):
                 else:
                     package_target = target
 
+                maintainers = getaddresses(data.get("packager", [""]))
+                maintainer, _ = Maintainers.get_or_create(
+                    email=maintainers[0][1], name=maintainers[0][0]
+                )
+
                 Sources.insert(
                     name=data["name"][0],
                     version=data["version"][0],
                     target=package_target,
                     cpe="",
+                    maintainer=maintainer,
                     timestamp=last_modified,
                 ).on_conflict(
                     conflict_target=[Sources.name, Sources.version, Sources.target],
-                    update={Sources.timestamp: last_modified},
+                    update={
+                        Sources.timestamp: last_modified,
+                        Sources.maintainer: maintainer,
+                    },
                 ).execute()
             Targets.update(timestamp=last_modified).where(
                 Targets.id == target
