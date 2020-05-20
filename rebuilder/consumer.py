@@ -1,16 +1,18 @@
+import logging
+import time
 from datetime import datetime
 
 import yaml
+from huey import RedisHuey, crontab
 from peewee import *
 
-import results.gitlab
 import results.github
+import results.gitlab
 import results.rebuilderd
 import sources.archlinux
 import sources.openwrt
 from database import *
 from render import render_all
-import logging
 
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
@@ -20,6 +22,8 @@ logger.setLevel(config["log"]["level"])
 logger.addHandler(logging.StreamHandler())
 
 init_db()
+
+huey = RedisHuey("collector", host="localhost")
 
 for name, origin_config in config.get("origins", {}).items():
     origin_data = dict(
@@ -138,22 +142,34 @@ def insert_rbvf(rbvf: dict):
         ).on_conflict_ignore().execute()
 
 
-for origin in Origins.select():
-    print(f"Get sources of {origin.name}")
-    origin_config = {**config["origins"][origin.name], "name": origin.name}
-    sources_methods[origin_config["sources_method"]](origin_config)
+@huey.periodic_task(crontab(minute="*/30"))
+def task_update_origins():
+    for origin in Origins.select():
+        print(f"Get sources of {origin.name}")
+        origin_config = {**config["origins"][origin.name], "name": origin.name}
+        sources_methods[origin_config["sources_method"]](origin_config)
 
-for rebuilder in Rebuilders.select():
-    rebuilder_config = {**config["rebuilders"][rebuilder.name], "name": rebuilder.name}
 
-    rbvfs = results_methods[rebuilder_config["results_method"]](
-        rebuilder_config, rebuilder.timestamp
-    )
-    Rebuilders.update(timestamp=datetime.utcnow()).where(
-        Rebuilders.id == rebuilder
-    ).execute()
+@huey.periodic_task(crontab(minute="*/30"))
+def task_update_rebuilder():
+    for rebuilder in Rebuilders.select():
+        rebuilder_config = {
+            **config["rebuilders"][rebuilder.name],
+            "name": rebuilder.name,
+        }
 
-    for rbvf in rbvfs:
-        insert_rbvf(rbvf)
+        rbvfs = results_methods[rebuilder_config["results_method"]](
+            rebuilder_config, rebuilder.timestamp
+        )
+        Rebuilders.update(timestamp=datetime.utcnow()).where(
+            Rebuilders.id == rebuilder
+        ).execute()
 
-render_all(config["rebuilders"])
+        for rbvf in rbvfs:
+            insert_rbvf(rbvf)
+
+
+# This will later be replaced by a flask service
+while True:
+    render_all(config["rebuilders"])
+    time.sleep(60 * 30)
