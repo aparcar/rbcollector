@@ -16,7 +16,10 @@ Currently a OpenWrt snapshot verifier is implemented, however more projects are 
 ## Setup database
 
 ```bash
+psql --username postgres -c "drop database collector"
 psql --username postgres -c "CREATE DATABASE collector"
 psql --username postgres -c "CREATE USER collector WITH PASSWORD 'secret'"
 psql --username postgres -c "GRANT ALL ON DATABASE collector TO collector"
 ```
+
+![](docs/img/results.png)
