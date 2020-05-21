@@ -16,6 +16,15 @@ function set_focus(link) {
   }
 }
 
+function set_counters() {
+    ["reproducible", "unreproducible", "untested", "notfound"].forEach(
+        (source) => {
+            var sources = Array.from(document.getElementsByClassName(source));
+            document.getElementById(source + "-counter").innerHTML = sources.length;
+            document.getElementById(source + "-counter").classList.remove('d-none');
+    })
+}
+
 function reverse_mailto(reversed_mail, source) {
     location.href = 'mailto:' + reversed_mail.split("").reverse().join("") +
         '?subject=Reproducibility of "' + source + '"'
@@ -40,17 +49,33 @@ function reverse_mailto(reversed_mail, source) {
     </div>
     <div class="col-sm-4">
         <div class="list-group">
-            <a href="#" class="list-group-item list-group-item-action status-link" id="unreproducible" onclick="set_focus(this)">
-                <img src="/static/unreproducible.png" alt="untested icon"> Unreproducible
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="unreproducible" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/unreproducible.png" alt="untested icon">
+                    Unreproducible
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="unreproducible-counter"></span>
             </a>
-            <a href="#" class="list-group-item list-group-item-action status-link" id="untested" onclick="set_focus(this)">
-                <img src="/static/untested.png" alt="untested icon"> Untested
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="untested" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/untested.png" alt="untested icon">
+                    Untested
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="untested-counter"></span>
             </a>
-            <a href="#" class="list-group-item list-group-item-action status-link" id="reproducible" onclick="set_focus(this)">
-                <img src="/static/reproducible.png" alt="untested icon"> Reproducible
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="reproducible" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/reproducible.png" alt="untested icon">
+                    Reproducible
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="reproducible-counter"></span>
             </a>
-            <a href="#" class="list-group-item list-group-item-action status-link" id="notfound" onclick="set_focus(this)">
-                <img src="/static/notfound.png" alt="untested icon"> Not found
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="notfound" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/notfound.png" alt="untested icon">
+                    Not found
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="notfound-counter"></span>
             </a>
           </div>
     </div>
@@ -117,6 +142,7 @@ function reverse_mailto(reversed_mail, source) {
     {% endfor %}
 </table>
 <script>
-    set_focus(document.getElementById("unreproducible"))
+    set_focus(document.getElementById("unreproducible"));
+    set_counters();
 </script>
 {% endblock %}
