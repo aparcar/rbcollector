@@ -59,30 +59,30 @@ function reverse_mailto(reversed_mail, reversed_name, source) {
     </div>
     <div class="col-sm-4">
         <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="reproducible" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/icons/reproducible.svg" alt="untested icon">
+                    Reproducible
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="reproducible-counter"></span>
+            </a>
             <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="unreproducible" onclick="set_focus(this)">
                 <span>
-                    <img src="/static/unreproducible.svg" class="icon" alt="untested icon">
+                    <img src="/static/icons/unreproducible.svg" class="icon" alt="untested icon">
                     Unreproducible
                 </span>
                 <span class="badge badge-primary badge-pill d-none" id="unreproducible-counter"></span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="untested" onclick="set_focus(this)">
                 <span>
-                    <img src="/static/untested.svg" alt="untested icon">
+                    <img src="/static/icons/untested.svg" alt="untested icon">
                     Untested
                 </span>
                 <span class="badge badge-primary badge-pill d-none" id="untested-counter"></span>
             </a>
-            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="reproducible" onclick="set_focus(this)">
-                <span>
-                    <img src="/static/reproducible.svg" alt="untested icon">
-                    Reproducible
-                </span>
-                <span class="badge badge-primary badge-pill d-none" id="reproducible-counter"></span>
-            </a>
             <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="notfound" onclick="set_focus(this)">
                 <span>
-                    <img src="/static/notfound.svg" alt="untested icon">
+                    <img src="/static/icons/notfound.svg" alt="untested icon">
                     Not found
                 </span>
                 <span class="badge badge-primary badge-pill d-none" id="notfound-counter"></span>
@@ -136,16 +136,16 @@ function reverse_mailto(reversed_mail, reversed_name, source) {
             </td>
             <td>
                 <a href="javascript:reverse_mailto('{{ source.maintainer.email | reverse }}', '{{ source.maintainer.name | reverse }}', '{{ source.name }}')">
-                    <img src="/static/mail.svg" alt="mail icon" class="img-fluid" style="width: 20%; height: 20%">
+                    <img src="/static/icons/chat-square-dots.svg">
                 </a>
             </td>
             <td>
             {% for result in source.results %}
                 <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
-                    <img src="/static/{{ result.status }}.svg" alt="{{ result.status }} icon">
+                    <img src="/static/icons/{{ result.status }}.svg" alt="{{ result.status }} icon">
                 </a>
             {% else %}
-                <img src="/static/untested.svg" alt="untested icon"> 
+                <img src="/static/icons/untested.svg" alt="untested icon"> 
             {% endfor %}
             </td>
         </tr>
