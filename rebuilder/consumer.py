@@ -139,10 +139,12 @@ def insert_rbvf(rbvf: dict):
             source=source,
             build_date=build_date,
             storage_uri=storage_uri,
-        ).on_conflict_ignore().execute()
+        ).on_conflict(
+            conflict_target=[Results.source, Results.rebuilder],
+            update={Results.build_date: build_date},
+        ).execute()
 
 
-@huey.periodic_task(crontab(minute="*/30"))
 def task_update_origins():
     for origin in Origins.select():
         print(f"Get sources of {origin.name}")
@@ -150,7 +152,6 @@ def task_update_origins():
         sources_methods[origin_config["sources_method"]](origin_config)
 
 
-@huey.periodic_task(crontab(minute="*/30"))
 def task_update_rebuilder():
     for rebuilder in Rebuilders.select():
         rebuilder_config = {
@@ -169,7 +170,11 @@ def task_update_rebuilder():
             insert_rbvf(rbvf)
 
 
+task_update_origins()
+
 # This will later be replaced by a flask service
 while True:
+    task_update_origins()
+    task_update_rebuilder()
     render_all(config["rebuilders"])
     time.sleep(60 * 30)

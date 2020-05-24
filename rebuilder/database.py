@@ -112,7 +112,7 @@ class Results(BaseModel):
     storage_uri = ForeignKeyField(Storages)
 
     class Meta:
-        primary_key = CompositeKey("source", "rebuilder", "build_date")
+        primary_key = CompositeKey("source", "rebuilder")
 
 
 def init_db():
