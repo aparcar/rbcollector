@@ -42,7 +42,7 @@ def update_packages(name, config, suite_name, target_name):
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
     packages_req = requests.get(
-        get_target_url(config["uri"], suite_name, target_name) + "/packages/Packages"
+        get_target_url(config["uri"], suite_name, target_name) + "/packages/Packages.manifest"
     )
 
     last_modified = datetime.strptime(
@@ -54,10 +54,13 @@ def update_packages(name, config, suite_name, target_name):
         return
 
     for source in parse_origin_packages(packages_req.text):
-        maintainers = getaddresses(source.get("Maintainer", [""]))
-        maintainer, _ = Maintainers.get_or_create(
-            email=maintainers[1], name=maintainers[0]
-        )
+        maintainers = getaddresses([source.get("Maintainer", "")])
+        if maintainers:
+            maintainer, _ = Maintainers.get_or_create(
+                email=maintainers[0][1], name=maintainers[0][0]
+            )
+        else:
+            maintainer = None
 
         Sources.insert(
             name=source["Package"],
