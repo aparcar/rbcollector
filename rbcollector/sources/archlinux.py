@@ -15,16 +15,9 @@ from email.utils import getaddresses
 import requests
 
 from time import sleep
-from rebuilder.database import *
+from rbcollector.database import *
 
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s -> %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-TRACE = 5
-logging.addLevelName(TRACE, "TRACE")
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # https://github.com/archlinux/archweb/blob/a0ea44189ad4b7e8ed13b19a69173a0429a46208/devel/management/commands/reporead.py#L511
 def parse_info(iofile):

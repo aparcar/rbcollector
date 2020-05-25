@@ -1,17 +1,20 @@
-from jinja2 import Environment, FileSystemLoader
+import logging
+import shutil
 from pathlib import Path
-import yaml
-from collections import namedtuple
 
-from database import *
+from jinja2 import Environment, FileSystemLoader
 
-file_loader = FileSystemLoader("templates")
+from rbcollector.database import *
+
+logger = logging.getLogger(__name__)
+
+file_loader = FileSystemLoader(Path(__file__).parent.absolute() / "templates")
 env = Environment(loader=file_loader, extensions=["jinja2.ext.do"])
 
 
-def render_target(target):
+def render_target(work_path, target):
     output_path = (
-        Path().cwd()
+        work_path
         / "public"
         / target.component.suite.origin.name
         / target.component.suite.name
@@ -35,32 +38,30 @@ def render_target(target):
     )
 
 
-def render_start(origins):
-    output_path = Path().cwd() / "public/index.html"
+def render_start(work_path, origins):
+    output_path = work_path / "public/index.html"
     template = env.get_template("start.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origins=origins))
 
 
-def render_suites(origin):
-    output_path = Path().cwd() / "public" / origin.name / "index.html"
+def render_suites(work_path, origin):
+    output_path = work_path / "public" / origin.name / "index.html"
     template = env.get_template("origin.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origin=origin))
 
 
-def render_components(suite):
-    output_path = (
-        Path().cwd() / "public" / suite.origin.name / suite.name / "index.html"
-    )
+def render_components(work_path, suite):
+    output_path = work_path / "public" / suite.origin.name / suite.name / "index.html"
     template = env.get_template("components.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(suite=suite))
 
 
-def render_targets(component, targets):
+def render_targets(work_path, component, targets):
     output_path = (
-        Path().cwd()
+        work_path
         / "public"
         / component.suite.origin.name
         / component.suite.name
@@ -72,27 +73,35 @@ def render_targets(component, targets):
     output_path.write_text(template.render(component=component, targets=targets))
 
 
-def render_rebuilders(rebuilders):
-    output_path = Path().cwd() / "public/rebuilders.html"
+def render_rebuilders(work_path, rebuilders):
+    output_path = work_path / "public/rebuilders.html"
     template = env.get_template("rebuilders.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(rebuilders=rebuilders))
 
 
-def render_all(rebuilders):
-    render_rebuilders(rebuilders)
+def site(rebuilders, dir="./public"):
+    work_path = Path(dir)
+    work_path.mkdir(exist_ok=True, parents=True)
+    render_rebuilders(work_path, rebuilders)
+
     origins = Origins.select()
-    render_start(origins)
+    render_start(work_path, origins)
     for origin in origins:
-        print(f"Rendering {origin.name}")
-        render_suites(origin)
+        logger.info(f"Rendering {origin.name}")
+        render_suites(work_path, origin)
+
         for suite in origin.suites:
-            print(f"Rendering {origin.name}/{suite.name}")
-            render_components(suite)
+            logger.info(f"Rendering {origin.name}/{suite.name}")
+            render_components(work_path, suite)
+
             for component in suite.components:
-                print(f"Rendering {origin.name}/{suite.name}/{component.name}")
+                logger.info(f"Rendering {origin.name}/{suite.name}/{component.name}")
+
                 for target in component.targets:
-                    print(
+                    logger.info(
                         f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
                     )
-                    render_target(target)
+                    render_target(work_path, target)
+    
+    shutil.copytree(Path(__file__).parent.absolute() / "static", work_path / "static", dirs_exist_ok=True)

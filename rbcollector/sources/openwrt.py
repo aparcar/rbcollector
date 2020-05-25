@@ -3,7 +3,7 @@ from os import environ
 import re
 import requests
 
-from rebuilder.database import *
+from rbcollector.database import *
 from email.utils import getaddresses
 
 

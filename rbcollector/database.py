@@ -7,17 +7,23 @@ from peewee import *
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
 
-logger = logging.getLogger("peewee")
-logger.setLevel(config["log"]["level"])
-logger.addHandler(logging.StreamHandler())
+logger = logging.getLogger(__name__)
 
-db = PostgresqlDatabase(
-    config["database"]["name"],
-    user=config["database"]["user"],
-    password=config["database"]["password"],
-    host=config["database"]["hostname"],
-    port=config["database"]["port"],
-)
+db = None
+
+if config["database"]["type"] == "postgresql":
+    db = PostgresqlDatabase(
+        config["database"]["name"],
+        user=config["database"]["user"],
+        password=config["database"]["password"],
+        host=config["database"]["hostname"],
+        port=config["database"]["port"],
+    )
+elif config["database"]["type"] == "sqlite":
+    db = SqliteDatabase(config["database"]["path"])
+else:
+    logger.error(f"Choose sqlite or postgresql as database type")
+    quit(1)
 
 
 class BaseModel(Model):
@@ -68,7 +74,6 @@ class Maintainers(BaseModel):
 
     class Meta:
         indexes = ((("email", "name"), True),)
-
 
 
 class Sources(BaseModel):
@@ -144,3 +149,22 @@ def init_db():
             {"name": "depwait"},
         ]
     ).on_conflict_ignore().execute()
+
+    for name, origin_config in config.get("origins", {}).items():
+        origin_data = dict(
+            name=name,
+            alias=origin_config["alias"],
+            desc_short=origin_config["desc_short"],
+            uri=origin_config["uri"],
+            website=origin_config["website"],
+        )
+        Origins.insert(origin_data).on_conflict(
+            conflict_target=[Origins.name], update=origin_data
+        ).execute()
+
+    for name, rebuilder_config in config.get("rebuilders", {}).items():
+        origin = Origins.get(name=rebuilder_config.get("origin"))
+
+        Rebuilders.insert(
+            name=name, uri=rebuilder_config["uri"], origin=origin,
+        ).on_conflict_ignore().execute()

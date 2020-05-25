@@ -1,20 +1,34 @@
 
 url: https://rebuild.aparcar.org
-
+loop_interval: 30 # minutes
 log:
   level: INFO
 
 database:
-  name: collector
-  user: collector
-  password: secret
-  hostname: 127.0.0.1
-  port: 5432
+  type: sqlite
+  path: database.db
+
+  # Prefer PostgreSQL for real setups
+  # type: postgresql
+  # name: collector
+  # user: collector
+  # password: secret
+  # hostname: 127.0.0.1
+  # port: 5432
 
 origins:
   archlinux:
     desc_short: Upstream Archlinux packages.
-    desc_long: Arch Linux is an independently developed, x86-64 general purpose GNU/Linux distribution versatile enough to suit any role. Development focuses on simplicity, minimalism, and code elegance. Arch is installed as a minimal base system, configured by the user upon which their own ideal environment is assembled by installing only what is required or desired for their unique purposes. GUI configuration utilities are not officially provided, and most system configuration is performed from the shell by editing simple text files. Arch strives to stay bleeding edge, and typically offers the latest stable versions of most software. 
+    desc_long: > 
+      Arch Linux is an independently developed, x86-64 general purpose GNU/Linux
+      distribution versatile enough to suit any role. Development focuses on
+      simplicity, minimalism, and code elegance. Arch is installed as a minimal
+      base system, configured by the user upon which their own ideal environment
+      is assembled by installing only what is required or desired for their
+      unique purposes. GUI configuration utilities are not officially provided,
+      and most system configuration is performed from the shell by editing
+      simple text files. Arch strives to stay bleeding edge, and typically
+      offers the latest stable versions of most software. 
     alias: Archlinux
     uri: https://archive.archlinux.org
     website: https://archlinux.org
@@ -86,7 +100,7 @@ rebuilders:
     results_method: gitlab
     artifact_storage: True
     gitlab:
-      token: "foobar"
+      token: "secret"
       host: https://gitlab.com
       repo: aparcar/openwrt-rebuilder
       path: results/rbvf.json
@@ -103,4 +117,4 @@ rebuilders:
     github: 
       repo: "aparcar/openwrt-rebuilder"
       path: "rbvf.json"
-      token: "foobar"
+      token: "secret"

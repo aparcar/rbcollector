@@ -3,56 +3,28 @@ import time
 from datetime import datetime
 
 import yaml
-from huey import RedisHuey, crontab
 from peewee import *
 
-import results.github
-import results.gitlab
-import results.rebuilderd
-import sources.archlinux
-import sources.openwrt
-from database import *
-from render import render_all
+import rbcollector.results.github
+import rbcollector.results.gitlab
+import rbcollector.results.rebuilderd
+import rbcollector.sources.archlinux
+import rbcollector.sources.openwrt
+from rbcollector.database import *
 
 with open("config.yml") as config_file:
     config = yaml.safe_load(config_file)
 
-logger = logging.getLogger("consumer")
-logger.setLevel(config["log"]["level"])
-logger.addHandler(logging.StreamHandler())
-
-init_db()
-
-huey = RedisHuey("collector", host="localhost")
-
-for name, origin_config in config.get("origins", {}).items():
-    origin_data = dict(
-        name=name,
-        alias=origin_config["alias"],
-        desc_short=origin_config["desc_short"],
-        uri=origin_config["uri"],
-        website=origin_config["website"],
-    )
-    Origins.insert(origin_data).on_conflict(
-        conflict_target=[Origins.name], update=origin_data
-    ).execute()
-
-
-for name, rebuilder_config in config.get("rebuilders", {}).items():
-    origin = Origins.get(name=rebuilder_config.get("origin"))
-
-    Rebuilders.insert(
-        name=name, uri=rebuilder_config["uri"], origin=origin,
-    ).on_conflict_ignore().execute()
+logger = logging.getLogger(__name__)
 
 results_methods = {
-    "gitlab": results.gitlab.get_rbvfs,
-    "github": results.github.get_rbvfs,
-    "rebuilderd": results.rebuilderd.get_rbvfs,
+    "gitlab": rbcollector.results.gitlab.get_rbvfs,
+    "github": rbcollector.results.github.get_rbvfs,
+    "rebuilderd": rbcollector.results.rebuilderd.get_rbvfs,
 }
 sources_methods = {
-    "archlinux": sources.archlinux.update_sources,
-    "openwrt": sources.openwrt.update_sources,
+    "archlinux": rbcollector.sources.archlinux.update_sources,
+    "openwrt": rbcollector.sources.openwrt.update_sources,
 }
 
 
@@ -145,14 +117,14 @@ def insert_rbvf(rbvf: dict):
         ).execute()
 
 
-def task_update_origins():
+def update_origins():
     for origin in Origins.select():
         print(f"Get sources of {origin.name}")
         origin_config = {**config["origins"][origin.name], "name": origin.name}
         sources_methods[origin_config["sources_method"]](origin_config)
 
 
-def task_update_rebuilder():
+def update_rebuilder():
     for rebuilder in Rebuilders.select():
         rebuilder_config = {
             **config["rebuilders"][rebuilder.name],
@@ -168,13 +140,3 @@ def task_update_rebuilder():
 
         for rbvf in rbvfs:
             insert_rbvf(rbvf)
-
-
-task_update_origins()
-
-# This will later be replaced by a flask service
-while True:
-    task_update_origins()
-    task_update_rebuilder()
-    render_all(config["rebuilders"])
-    time.sleep(60 * 30)

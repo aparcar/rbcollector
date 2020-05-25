@@ -1,0 +1,26 @@
+{
+    "total_count": 2,
+    "artifacts": [{
+            "id": 6303338,
+            "node_id": "MDg6QXJ0aWZhY3Q2MzAzMzM4",
+            "name": "results",
+            "size_in_bytes": 28250107,
+            "url": "https://api.github.com/repos/aparcar/openwrt-rebuilder/actions/artifacts/6303338",
+            "archive_download_url": "https://api.github.com/repos/aparcar/openwrt-rebuilder/actions/artifacts/6303338/zip",
+            "expired": false,
+            "created_at": "2020-05-14T10:58:48Z",
+            "updated_at": "2020-05-14T10:58:48Z"
+        },
+        {
+            "id": 6301028,
+            "node_id": "MDg6QXJ0aWZhY3Q2MzAxMDI4",
+            "name": "results",
+            "size_in_bytes": 28249588,
+            "url": "https://api.github.com/repos/aparcar/openwrt-rebuilder/actions/artifacts/6301028",
+            "archive_download_url": "https://api.github.com/repos/aparcar/openwrt-rebuilder/actions/artifacts/6301028/zip",
+            "expired": false,
+            "created_at": "2020-05-14T10:12:05Z",
+            "updated_at": "2020-05-14T10:12:06Z"
+        }
+    ]
+}
