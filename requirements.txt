@@ -1,26 +1,7 @@
-appdirs==1.4.3
-attrs==19.3.0
-black==19.10b0
-certifi==2020.4.5.1
-chardet==3.0.4
 click==7.1.2
-entrypoints==0.3
-flake8==3.7.9
-idna==2.9
 Jinja2==2.11.2
-MarkupSafe==1.1.1
-mccabe==0.6.1
-pathspec==0.8.0
 peewee==3.13.3
-psycopg2==2.8.5
-pycodestyle==2.5.0
-pyflakes==2.1.1
+psycopg2-binary==2.8.5
 python-gitlab==2.2.0
 PyYAML==5.3.1
--e git+git@github.com:aparcar/rebuild-collector.git@1838fb86bec45a6fb7975139f99d2d544326f395#egg=rebuilder
-regex==2020.5.7
 requests==2.23.0
-rope==0.17.0
-toml==0.10.0
-typed-ast==1.4.1
-urllib3==1.25.9

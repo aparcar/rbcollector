@@ -1,32 +1,50 @@
 
 url: https://rebuild.aparcar.org
-
+loop_interval: 30 # minutes
 log:
   level: INFO
 
 database:
-  name: collector
-  user: collector
-  password: secret
-  hostname: 127.0.0.1
-  port: 5432
+  type: sqlite
+  path: database.db
+
+  # Prefer PostgreSQL for real setups
+  # type: postgresql
+  # name: collector
+  # user: collector
+  # password: secret
+  # hostname: 127.0.0.1
+  # port: 5432
 
 origins:
   archlinux:
-    description: Upstream Archlinux packages
+    desc_short: Upstream Archlinux packages.
+    desc_long: > 
+      Arch Linux is an independently developed, x86-64 general purpose GNU/Linux
+      distribution versatile enough to suit any role. Development focuses on
+      simplicity, minimalism, and code elegance. Arch is installed as a minimal
+      base system, configured by the user upon which their own ideal environment
+      is assembled by installing only what is required or desired for their
+      unique purposes. GUI configuration utilities are not officially provided,
+      and most system configuration is performed from the shell by editing
+      simple text files. Arch strives to stay bleeding edge, and typically
+      offers the latest stable versions of most software. 
     alias: Archlinux
     uri: https://archive.archlinux.org
     website: https://archlinux.org
     sources_method: archlinux
     interval: 720 # 12 hours
+    arch_independent_identifier: any
     suites:
       - core
       - extra
+      - community
+      - multilib
     targets:
       - x86_64
 
   openwrt:
-    description: Upstream OpenWrt images and packages
+    desc_short: Upstream OpenWrt images and packages.
     alias: OpenWrt
     uri: https://downloads.cdn.openwrt.org
     website: https://openwrt.org
@@ -39,9 +57,11 @@ origins:
       - ath79/generic
       - ramips/mt7620
       - ramips/mt7621
+      - rockchip/armv8
 
 rebuilders:
   archlinux-rebuilderd-official:
+    origin: archlinux
     maintainer: unknown
     contact: https://reproducible.archlinux.org
     uri: https://reproducible.archlinux.org#archlinux
@@ -51,6 +71,7 @@ rebuilders:
     artifact_storage: False
 
   archlinux-rebuilderd-wolfpit:
+    origin: archlinux
     maintainer: unknown
     contact: https://wolfpit.net
     uri: https://wolfpit.net/rebuild#archlinux
@@ -60,6 +81,7 @@ rebuilders:
     artifact_storage: False
 
   archlinux-rebuilderd-fzylab:
+    origin: archlinux
     maintainer: unknown
     contact: unknown
     uri: https://rebuilder.fzylab.net#archlinux
@@ -69,6 +91,7 @@ rebuilders:
     artifact_storage: False
 
   aparcar-openwrt-gitlab:
+    origin: openwrt
     maintainer: Paul Spooren
     contact: mail@aparcar.org
     uri: https://gitlab.com/aparcar/openwrt-rebuilder
@@ -77,7 +100,21 @@ rebuilders:
     results_method: gitlab
     artifact_storage: True
     gitlab:
-      token: "foobar"
+      token: "secret"
       host: https://gitlab.com
-      project: aparcar/openwrt-rebuilder
-      rbvf: results/rbvf.json.gz
+      repo: aparcar/openwrt-rebuilder
+      path: results/rbvf.json
+
+  aparcar-openwrt-github:
+    origin: openwrt
+    maintainer: Paul Spooren
+    contact: mail@aparcar.org
+    uri: https://github.com/aparcar/openwrt-rebuilder
+    pubkey_signify: ""
+    pubkey_pgp: ""
+    results_method: github
+    artifact_storage: False
+    github: 
+      repo: "aparcar/openwrt-rebuilder"
+      path: "rbvf.json"
+      token: "secret"

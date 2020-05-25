@@ -13,13 +13,13 @@ with open(join(base_path, "requirements.txt")) as req_file:
     requirements = req_file.readlines()
 
 setup(
-    name="rebuilder",
+    name="rbcollector",
     version="0.0.1",
-    url="https://github.com/aparcar/rebuilder",
+    url="https://github.com/aparcar/rbcollector",
     maintainer="Paul Spooren",
     maintainer_email="mail@aparcar.org",
-    description="rebuilder backend",
-    entry_points={},
+    description="Reproducible builds collector",
+    entry_points={"console_scripts": ["rbcollector=rbcollector.cli:cli"]},
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=find_packages(),

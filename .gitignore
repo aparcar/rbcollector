@@ -1,7 +1,8 @@
+rbcollector.egg-info
+public/
+database.db
+config.yml
+.vscode/
 .direnv/
 __pycache__/
-config.yml
-database.db
-public/*
-!public/static/
-rebuilder.egg-info
+*.db

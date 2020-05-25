@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "name": "archlinux",
+        "alias": "Archlinux",
+        "desc_short": "Upstream Archlinux packages.",
+        "uri": "https://archive.archlinux.org",
+        "website": "https://archlinux.org"
+    },
+    {
+        "id": 2,
+        "name": "openwrt",
+        "alias": "OpenWrt",
+        "desc_short": "Upstream OpenWrt images and packages.",
+        "uri": "https://downloads.cdn.openwrt.org",
+        "website": "https://openwrt.org"
+    }
+]

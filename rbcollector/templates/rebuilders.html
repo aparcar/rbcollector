@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block content %}
+<p style="clear:both;">
+    <h2>Rebuilders</h2>
+    <p>
+        List of active rebuilders delivering results.
+    </p>
+    <table class="table table-hover table-sm">
+        <tr>
+            <th scope="col">
+                Name
+            </th>
+            <th scope="col">
+                Maintainer
+            </th>
+            <th scope="col">
+                Artifact Support
+            </th>
+        </tr>
+        {% for name, data in rebuilders.items() %}
+        <tr>
+            <td>
+                <a href="{{ data['uri'] }}">{{ name }}</a>
+            </td>
+            <td>
+                <a href="{{ data['contact'] }}">{{ data['maintainer'] }}</a>
+            </td>
+
+            <td>
+                {{ data['artifact_storage'] }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endblock %}

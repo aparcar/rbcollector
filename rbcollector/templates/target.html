@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block script %} 
+function set_focus(link) {
+  if (link.classList.contains("active")) {
+      var sources = Array.from(document.getElementsByClassName("source")); 
+      sources.map(element => element.style.display = "table-row"); 
+      link.classList.remove("active");
+  } else {
+      var status_links = Array.from(document.getElementsByClassName("status-link")); 
+      status_links.map(element => element.classList.remove("active"));
+      link.classList.add("active");
+      var sources = Array.from(document.getElementsByClassName("source")); 
+      sources.map(element => element.style.display = "none");
+      var sources = Array.from(document.getElementsByClassName(link.id)); 
+      sources.map(element => element.style.display = "table-row");
+  }
+}
+
+function set_counters() {
+    ["reproducible", "unreproducible", "untested", "notfound"].forEach(
+        (source) => {
+            var sources = Array.from(document.getElementsByClassName(source));
+            document.getElementById(source + "-counter").innerHTML = sources.length;
+            document.getElementById(source + "-counter").classList.remove('d-none');
+    })
+}
+
+function reverse_mailto(reversed_mail, reversed_name, source) {
+    location.href = 'mailto:' + 
+        reversed_mail.split("").reverse().join("") +
+        '?subject=Reproducibility of "' + source + '"' +
+        '&body=Dear ' + reversed_name.split("").reverse().join("") + ','
+}
+{% endblock %}
+{% block content %}
+<h1>
+    <a href="/{{ target.component.suite.origin.name }}/">{{ target.component.suite.origin.alias }}</a>
+
+</h1>
+<h3>
+    {{ target.component.suite.name }}
+    <b>/</b>
+    {{ target.component.name }}
+    <b>/</b>
+    {{ target.name }} Sources
+</h3>
+
+<div class="row">
+    <div class="col-sm-4">
+        <div class="card">
+            <div class="card-header">
+                Info
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Sources: {{ sources | length }}</li>
+                <li class="list-group-item">Last update: {{ target.timestamp }}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="reproducible" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/icons/reproducible.svg" alt="untested icon">
+                    Reproducible
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="reproducible-counter"></span>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="unreproducible" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/icons/unreproducible.svg" class="icon" alt="untested icon">
+                    Unreproducible
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="unreproducible-counter"></span>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="untested" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/icons/untested.svg" alt="untested icon">
+                    Untested
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="untested-counter"></span>
+            </a>
+            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-link" id="notfound" onclick="set_focus(this)">
+                <span>
+                    <img src="/static/icons/notfound.svg" alt="untested icon">
+                    Not found
+                </span>
+                <span class="badge badge-primary badge-pill d-none" id="notfound-counter"></span>
+            </a>
+          </div>
+    </div>
+    <div class="col-sm-4">
+
+        <div class="card">
+            <div class="card-header">
+                Rebuilders
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for rebuilder in rebuilders %}
+                <li class="list-group-item"><a href="{{ rebuilder.uri }}">{{ rebuilder.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h3>Rebuild results</h3>
+<table class="table table-hover table-sm">
+    <tr>
+        <th scope="col">
+            Name
+        </th>
+        <th scope="col">
+            Current version
+        </th>
+        <th scope="col">
+            Maintainer
+        </th>
+        <th scope="col">
+            Rebuilds
+        </th>
+    </tr>
+    {% for source in sources %} 
+        {% set ns = namespace(statues = []) %}
+        {% for result in source.results %}
+            {% do ns.statues.append(result.status) %} 
+        {% else %} 
+            {% set ns.statues = ["untested"] %}
+        {% endfor %}
+        <tr class="source {{ ns.statues | unique | join(' ') }}">
+            <td>
+                {{ source.name }}
+            </td>
+            <td>
+                {{ source.version }}
+            </td>
+            <td>
+                <a href="javascript:reverse_mailto('{{ source.maintainer.email | reverse }}', '{{ source.maintainer.name | reverse }}', '{{ source.name }}')">
+                    <img src="/static/icons/chat-square-dots.svg">
+                </a>
+            </td>
+            <td>
+            {% for result in source.results %}
+                <a href="{{ result.storage_uri.uri }}/{{ result.artifacts.diffoscope_html_uri }}" title="{{ result.rebuilder.name }} {{ result.build_date }}">
+                    <img src="/static/icons/{{ result.status }}.svg" alt="{{ result.status }} icon">
+                </a>
+            {% else %}
+                <img src="/static/icons/untested.svg" alt="untested icon"> 
+            {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+<script>
+    set_focus(document.getElementById("unreproducible"));
+    set_counters();
+</script>
+{% endblock %}
