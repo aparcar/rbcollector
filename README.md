@@ -80,3 +80,5 @@ psql --username postgres -c "CREATE DATABASE collector"
 psql --username postgres -c "CREATE USER collector WITH PASSWORD 'secret'"
 psql --username postgres -c "GRANT ALL ON DATABASE collector TO collector"
 ```
+
+![](docs/img/results.png)
