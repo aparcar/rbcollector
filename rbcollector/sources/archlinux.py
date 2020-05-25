@@ -32,7 +32,7 @@ def parse_info(iofile):
             continue
         elif line.startswith("%") and line.endswith("%"):
             blockname = line[1:-1].lower()
-            logger.log(TRACE, "Parsing package block %s", blockname)
+            logger.debug("Parsing package block %s", blockname)
             store[blockname] = []
         elif blockname:
             store[blockname].append(line)
