@@ -42,7 +42,8 @@ def update_packages(name, config, suite_name, target_name):
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
     packages_req = requests.get(
-        get_target_url(config["uri"], suite_name, target_name) + "/packages/Packages.manifest"
+        get_target_url(config["uri"], suite_name, target_name)
+        + "/packages/Packages.manifest"
     )
 
     last_modified = datetime.strptime(
@@ -50,7 +51,9 @@ def update_packages(name, config, suite_name, target_name):
     )
 
     if target.timestamp >= last_modified:
-        print(f"No source updates for {suite_name}/{component.name}/{target.name}")
+        logger.info(
+            f"No source updates for {suite_name}/{component.name}/{target.name}"
+        )
         return
 
     for source in parse_origin_packages(packages_req.text):
@@ -93,7 +96,9 @@ def update_images(name, config, suite_name, target_name):
     )
 
     if target.timestamp >= last_modified:
-        print(f"No source updates for {suite_name}/{component.name}/{target.name}")
+        logger.info(
+            f"No source updates for {suite_name}/{component.name}/{target.name}"
+        )
         return
 
     version = version_req.text.strip().split("-")[1]
@@ -110,7 +115,6 @@ def update_images(name, config, suite_name, target_name):
 
 
 def update_sources(config):
-    print(config)
     for suite in config.get("suites"):
         for target in config.get("targets"):
             update_images(config["name"], config, suite, target)

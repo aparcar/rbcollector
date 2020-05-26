@@ -88,12 +88,12 @@ def parse_repo(repopath):
 
 
 def update_sources(config):
-    print(f"Updating {config['name']}")
+    logger.info(f"Updating {config['name']}")
 
     origin = Origins.get(name=config["name"])
 
     for suite_name in config["suites"]:
-        print(f"Updating {suite_name}")
+        logger.info(f"Updating {suite_name}")
 
         suite, _ = Suites.get_or_create(name=suite_name, origin=origin)
         component, _ = Components.get_or_create(name="packages", suite=suite)
@@ -114,7 +114,7 @@ def update_sources(config):
             )
 
             if target.timestamp >= last_modified:
-                print(f"No source updates for {suite_name}/packages/{target.name}")
+                logger.info(f"No source updates for {suite_name}/packages/{target.name}")
                 continue
 
             with tempfile.TemporaryDirectory() as tmpdirname:

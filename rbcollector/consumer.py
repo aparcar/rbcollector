@@ -32,7 +32,7 @@ def insert_rbvf(rbvf: dict):
     rebuilder = Rebuilders.get_or_none(Rebuilders.name == rbvf["rebuilder"]["name"])
 
     if not rebuilder:
-        print(f"Unknown rebuilder {rbvf['rebuilder']['name']}")
+        logger.warning(f"Unknown rebuilder {rbvf['rebuilder']['name']}")
         return False
 
     origin_name = rbvf.get("origin_name")
@@ -113,13 +113,17 @@ def insert_rbvf(rbvf: dict):
             storage_uri=storage_uri,
         ).on_conflict(
             conflict_target=[Results.source, Results.rebuilder],
-            update={Results.build_date: build_date},
+            update={
+                Results.build_date: build_date,
+                Results.status: status,
+                Results.storage_uri: storage_uri,
+            },
         ).execute()
 
 
 def update_origins():
     for origin in Origins.select():
-        print(f"Get sources of {origin.name}")
+        logger.info(f"Get sources of {origin.name}")
         origin_config = {**config["origins"][origin.name], "name": origin.name}
         sources_methods[origin_config["sources_method"]](origin_config)
 

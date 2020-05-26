@@ -1,13 +1,17 @@
-import json
-from urllib.request import urlopen
+import logging
+
+import requests
+
+logger = logging.getLogger(__name__)
 
 
 def get_rbvfs(config: dict, timestamp):
-    print("Using Rebuilderd")
-    host, distro = config["uri"].split("#")
-    results = json.loads(
-        urlopen(f"{host}/api/v0/pkgs/list?distro={distro}").read().decode()
-    )
+    logger.info("Using Rebuilderd")
+    host = config["rebuilderd"]["host"]
+    distro = config["rebuilderd"]["distro"]
+    logger.debug(f"Rebuilderd at {host} for {distro}")
+
+    results = requests.get(f"{host}/api/v0/pkgs/list?distro={distro}").json()
 
     rbvf = {
         "origin_uri": "",

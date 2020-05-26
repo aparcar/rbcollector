@@ -1,16 +1,19 @@
 import gzip
 import json
+import logging
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import requests
 
+logger = logging.getLogger(__name__)
+
 
 def get_rbvfs(config: dict, timestamp):
-    print("Using GitHub")
+    logger.info("Using GitHub")
     rbvfs = []
     headers = {"Authorization": "token " + config["github"]["token"]}
     response = requests.get(
@@ -26,7 +29,7 @@ def get_rbvfs(config: dict, timestamp):
             continue
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            print(f"Downloading to {artifact['name']}")
+            logger.info(f"Downloading to {artifact['name']}")
 
             tmp_path = Path(tmpdirname)
             zip_path = tmp_path / f"artifact_{artifact['id']}.zip"
@@ -36,7 +39,6 @@ def get_rbvfs(config: dict, timestamp):
             )
             zip_file = zipfile.ZipFile(zip_path)
             zip_file.extractall(path=tmp_path)
-            print(tmp_path)
             zip_file.close()
 
             rbvf_path = tmp_path / config["github"]["path"]
@@ -49,6 +51,6 @@ def get_rbvfs(config: dict, timestamp):
                 rbvf = json.loads(rbvf_path.read_text())
                 rbvfs.append(rbvf)
             else:
-                print(f"WARNING: rbvf file {rbvf_path} not found")
+                logger.warning(f"rbvf file {rbvf_path} not found")
 
     return rbvfs

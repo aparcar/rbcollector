@@ -13,31 +13,6 @@ from rbcollector.database import *
 logger = logging.getLogger(__name__)
 
 
-def run_command(cmd, cwd=".", ignore_errors=False, capture=False, env={}, timeout=None):
-    """
-    Run a command in shell
-    """
-    print("Running {} in {}".format(cmd, cwd))
-    current_env = environ.copy()
-    current_env.update(env)
-    proc = run(
-        cmd,
-        cwd=cwd,
-        capture_output=capture,
-        text=True,
-        env=current_env,
-        timeout=timeout,
-    )
-
-    if proc.returncode and not ignore_errors:
-        print("Error running {}".format(cmd))
-        quit()
-
-    if capture:
-        print(proc.stderr)
-        return proc.stdout
-
-
 def dump(dir="./", all=False):
     work_path = Path(dir)
     work_path.mkdir(exist_ok=True, parents=True)
@@ -79,4 +54,3 @@ def load(dir):
     Components.insert(json.loads((work_path / "components.json").read_text())).execute()
     Targets.insert(json.loads((work_path / "targets.json").read_text())).execute()
     Sources.insert(json.loads((work_path / "sources.json").read_text())).execute()
-
