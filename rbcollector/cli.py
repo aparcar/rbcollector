@@ -44,6 +44,18 @@ def render_site(dir):
 
 
 @cli.group()
+def database():
+    """Manage the database"""
+    import rbcollector.database
+
+
+@database.command()
+def init():
+    """Initialize the database"""
+    rbcollector.database.init_db()
+
+
+@cli.group()
 def util():
     """Utilities to manage the rebuild-collector"""
     pass

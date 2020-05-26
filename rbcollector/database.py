@@ -121,6 +121,8 @@ class Results(BaseModel):
 
 
 def init_db():
+    logger.info("Init database")
+    
     db.create_tables(
         [
             Origins,
