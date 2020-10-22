@@ -8,6 +8,7 @@ from peewee import *
 import rbcollector.results.github
 import rbcollector.results.gitlab
 import rbcollector.results.rebuilderd
+import rbcollector.results.web
 import rbcollector.sources.archlinux
 import rbcollector.sources.openwrt
 from rbcollector.database import *
@@ -21,6 +22,7 @@ results_methods = {
     "gitlab": rbcollector.results.gitlab.get_rbvfs,
     "github": rbcollector.results.github.get_rbvfs,
     "rebuilderd": rbcollector.results.rebuilderd.get_rbvfs,
+    "web": rbcollector.results.web.get_rbvfs,
 }
 sources_methods = {
     "archlinux": rbcollector.sources.archlinux.update_sources,
