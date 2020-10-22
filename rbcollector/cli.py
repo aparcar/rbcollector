@@ -50,6 +50,12 @@ def util():
 
 
 @util.command()
+def init_db():
+    logger.info("Init database")
+    rbcollector.database.init_db()
+
+
+@util.command()
 @click.option(
     "-d", "--dir", "dir", default="./", help="Directory to store database dump"
 )
