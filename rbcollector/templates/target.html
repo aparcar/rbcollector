@@ -135,9 +135,13 @@ function reverse_mailto(reversed_mail, reversed_name, source) {
                 {{ source.version }}
             </td>
             <td>
-                <a href="javascript:reverse_mailto('{{ source.maintainer.email | reverse }}', '{{ source.maintainer.name | reverse }}', '{{ source.name }}')">
+		{% if source.maintainer %}
+                <a href="javascript:reverse_mailto('{{ source.maintainer.email |  reverse }}', '{{ source.maintainer.name | reverse }}', '{{ source.name }}')">
                     <img src="/static/icons/chat-square-dots.svg">
                 </a>
+		{% else %}
+	        <img src="/static/icons/no-maintainer.svg">
+		{% endif %}
             </td>
             <td>
             {% for result in source.results %}
