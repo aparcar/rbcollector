@@ -15,7 +15,6 @@ env = Environment(loader=file_loader, extensions=["jinja2.ext.do"])
 def render_target(work_path, target):
     output_path = (
         work_path
-        / "public"
         / target.component.suite.origin.name
         / target.component.suite.name
         / target.component.name
@@ -39,21 +38,21 @@ def render_target(work_path, target):
 
 
 def render_start(work_path, origins):
-    output_path = work_path / "public/index.html"
+    output_path = work_path / "index.html"
     template = env.get_template("start.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origins=origins))
 
 
 def render_suites(work_path, origin):
-    output_path = work_path / "public" / origin.name / "index.html"
+    output_path = work_path / origin.name / "index.html"
     template = env.get_template("origin.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(origin=origin))
 
 
 def render_components(work_path, suite):
-    output_path = work_path / "public" / suite.origin.name / suite.name / "index.html"
+    output_path = work_path / suite.origin.name / suite.name / "index.html"
     template = env.get_template("components.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(suite=suite))
@@ -62,7 +61,6 @@ def render_components(work_path, suite):
 def render_targets(work_path, component, targets):
     output_path = (
         work_path
-        / "public"
         / component.suite.origin.name
         / component.suite.name
         / component.name
@@ -74,13 +72,14 @@ def render_targets(work_path, component, targets):
 
 
 def render_rebuilders(work_path, rebuilders):
-    output_path = work_path / "public/rebuilders.html"
+    output_path = work_path / "rebuilders.html"
     template = env.get_template("rebuilders.html")
     output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.write_text(template.render(rebuilders=rebuilders))
 
 
 def site(rebuilders, dir="./public"):
+    logger.info(f"Rendering site to {dir}")
     work_path = Path(dir)
     work_path.mkdir(exist_ok=True, parents=True)
     render_rebuilders(work_path, rebuilders)
