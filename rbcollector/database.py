@@ -166,5 +166,7 @@ def init_db():
         origin = Origins.get(name=rebuilder_config.get("origin"))
 
         Rebuilders.insert(
-            name=name, uri=rebuilder_config["uri"], origin=origin,
+            name=name,
+            uri=rebuilder_config["uri"],
+            origin=origin,
         ).on_conflict_ignore().execute()

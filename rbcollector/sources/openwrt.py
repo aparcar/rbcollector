@@ -1,10 +1,11 @@
 import email.parser
-from os import environ
 import re
+from email.utils import getaddresses
+from os import environ
+
 import requests
 
 from rbcollector.database import *
-from email.utils import getaddresses
 
 
 def get_target_url(uri, version, target):

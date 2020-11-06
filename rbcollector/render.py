@@ -102,5 +102,9 @@ def site(rebuilders, dir="./public"):
                         f"Rendering {origin.name}/{suite.name}/{component.name}/{target.name}"
                     )
                     render_target(work_path, target)
-    
-    shutil.copytree(Path(__file__).parent.absolute() / "static", work_path / "static", dirs_exist_ok=True)
+
+    shutil.copytree(
+        Path(__file__).parent.absolute() / "static",
+        work_path / "static",
+        dirs_exist_ok=True,
+    )

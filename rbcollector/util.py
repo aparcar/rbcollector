@@ -68,7 +68,7 @@ def dump(dir="./", all=False):
 def load(dir):
     work_path = Path(dir)
     if not work_path.is_dir():
-        logger.error(f"Director {dir} not found")
+        logger.error(f"Directory {dir} not found")
         quit(1)
     init_db()
     Origins.insert(json.loads((work_path / "origins.json").read_text())).execute()
@@ -79,4 +79,3 @@ def load(dir):
     Components.insert(json.loads((work_path / "components.json").read_text())).execute()
     Targets.insert(json.loads((work_path / "targets.json").read_text())).execute()
     Sources.insert(json.loads((work_path / "sources.json").read_text())).execute()
-

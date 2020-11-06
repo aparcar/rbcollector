@@ -7,14 +7,13 @@ import shutil
 import tarfile
 import tempfile
 import urllib
+from email.utils import getaddresses
 from os import environ
 from pathlib import Path
-
-from email.utils import getaddresses
+from time import sleep
 
 import requests
 
-from time import sleep
 from rbcollector.database import *
 
 logger = logging.getLogger(__name__)

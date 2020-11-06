@@ -3,9 +3,8 @@ from collections import namedtuple
 from pathlib import Path
 
 import yaml
-from jinja2 import Environment, FileSystemLoader
-
 from database import *
+from jinja2 import Environment, FileSystemLoader
 
 
 def dump():

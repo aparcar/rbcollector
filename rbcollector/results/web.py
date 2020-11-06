@@ -1,12 +1,11 @@
 import gzip
-import json
-from json.decoder import JSONDecodeError
+import logging
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
 from datetime import datetime
-import logging
+from json.decoder import JSONDecodeError
+from pathlib import Path
 
 import requests
 
