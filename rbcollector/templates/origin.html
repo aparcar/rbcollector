@@ -1,6 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <p style="clear:both;">
     <h1>{{ origin.alias }}</h1>
+    <a href="{{ origin.uri }}"><h6>{{ origin.uri }}</h6></a>
     <div class="row">
         {% for suite in origin.suites %}
         <div class="col">
@@ -8,7 +9,7 @@
             <div class="row">
                 {% for component in suite.components %}
                 <div class="col">
-                    <div class="card">
+                    <div class="card mb-3">
                         <h5 class="card-header">{{ component.name }}</h5>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
