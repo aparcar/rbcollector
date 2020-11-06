@@ -16,7 +16,7 @@ def get_target_url(uri, version, target):
 
 def parse_origin_images(uri, version, target_name):
     return re.findall(
-        f".+? \*(openwrt-{target_name.replace('/', '-')}.+?.)\n",
+        f".+? \*(openwrt-.*?{target_name.replace('/', '-')}.+?.)\n",
         requests.get(get_target_url(uri, version, target_name) + "/sha256sums").text,
     )
 
@@ -42,7 +42,8 @@ def update_packages(name, config, suite_name, target_name):
     target, _ = Targets.get_or_create(name=target_name, component=component)
 
     packages_req = requests.get(
-        get_target_url(config["uri"], suite_name, target_name) + "/packages/Packages.manifest"
+        get_target_url(config["uri"], suite_name, target_name)
+        + "/packages/Packages.manifest"
     )
 
     last_modified = datetime.strptime(
@@ -71,7 +72,10 @@ def update_packages(name, config, suite_name, target_name):
             timestamp=last_modified,
         ).on_conflict(
             conflict_target=[Sources.name, Sources.version, Sources.target],
-            update={Sources.timestamp: last_modified, Sources.maintainer: maintainer,},
+            update={
+                Sources.timestamp: last_modified,
+                Sources.maintainer: maintainer,
+            },
         ).execute()
 
     Targets.update(timestamp=last_modified).where(Targets.id == target).execute()
@@ -100,7 +104,11 @@ def update_images(name, config, suite_name, target_name):
 
     for image in parse_origin_images(config["uri"], suite_name, target_name):
         Sources.insert(
-            name=image, version=version, target=target, cpe="", timestamp=last_modified,
+            name=image,
+            version=version,
+            target=target,
+            cpe="",
+            timestamp=last_modified,
         ).on_conflict(
             conflict_target=[Sources.name, Sources.version, Sources.target],
             update={Sources.timestamp: last_modified},
