@@ -123,7 +123,10 @@ def update_origins():
     for origin in Origins.select():
         print(f"Get sources of {origin.name}")
         origin_config = {**config["origins"][origin.name], "name": origin.name}
-        sources_methods[origin_config["sources_method"]](origin_config)
+        try:
+            sources_methods[origin_config["sources_method"]](origin_config)
+        except Exception as e:
+            logger.error(f"Failed to update origin '{origin.name}: {e}")
 
 
 def update_rebuilder():
@@ -133,9 +136,14 @@ def update_rebuilder():
             "name": rebuilder.name,
         }
 
-        rbvfs = results_methods[rebuilder_config["results_method"]](
-            rebuilder_config, rebuilder.timestamp
-        )
+        try:
+            rbvfs = results_methods[rebuilder_config["results_method"]](
+                rebuilder_config, rebuilder.timestamp
+            )
+        except Exception as e:
+            logger.error(f"Failed to update rebuilder '{rebuilder.name}': {e}")
+            continue
+
         Rebuilders.update(timestamp=datetime.utcnow()).where(
             Rebuilders.id == rebuilder
         ).execute()
