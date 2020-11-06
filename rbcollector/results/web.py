@@ -32,6 +32,7 @@ def get_rbvfs(config, timestamp):
                     rbvf = requests.get(f"{target_url}/rbvf.json").json()
                 except JSONDecodeError:
                     logger.warning(f"Failed to download rbvf.json")
+                    continue
 
                 if "timestamp" in rbvf:
                     remote_timestamp = datetime.fromisoformat(
