@@ -1,5 +1,5 @@
 click==7.1.2
-Jinja2==2.11.2
+Jinja2==2.11.3
 peewee==3.13.3
 psycopg2-binary==2.8.5
 python-gitlab==2.2.0
